@@ -28,5 +28,9 @@ class DatabaseSeeder extends Seeder
         );
 
         $superAdmin->syncRoles(['super_admin']);
+
+        if (app()->environment('local')) {
+            $this->call(DemoDataSeeder::class);
+        }
     }
 }
