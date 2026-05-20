@@ -1,0 +1,92 @@
+<?php
+
+namespace App\Http\Controllers\Api\V1;
+
+use App\Enums\RemissionStatus;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\V1\SignatureRequest;
+use App\Http\Requests\Api\V1\StoreRemissionRequest;
+use App\Http\Resources\Api\V1\RemissionResource;
+use App\Mail\RemisionCreada;
+use App\Models\Remission;
+use App\Services\RemissionEmailRouter;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+
+class RemissionController extends Controller
+{
+    public function index(Request $request): AnonymousResourceCollection
+    {
+        $remissions = Remission::query()
+            ->with(['client:id,name,nit', 'user:id,name'])
+            ->when($request->date('from'), fn (Builder $q, $d) => $q->whereDate('issued_at', '>=', $d))
+            ->when($request->date('to'), fn (Builder $q, $d) => $q->whereDate('issued_at', '<=', $d))
+            ->when($request->boolean('mine'), fn (Builder $q) => $q->where('user_id', $request->user()->id))
+            ->orderByDesc('issued_at')
+            ->paginate(25);
+
+        return RemissionResource::collection($remissions);
+    }
+
+    public function store(StoreRemissionRequest $request): RemissionResource
+    {
+        $payload = $request->validated();
+
+        $remission = DB::transaction(function () use ($payload, $request) {
+            $items = collect($payload['items'])->map(fn (array $item) => [
+                'product_id' => (int) $item['product_id'],
+                'quantity' => (int) $item['quantity'],
+                'unit_price_snapshot' => (int) $item['unit_price_snapshot'],
+                'subtotal' => (int) $item['quantity'] * (int) $item['unit_price_snapshot'],
+            ]);
+
+            $remission = Remission::create([
+                'client_id' => $payload['client_id'],
+                'user_id' => $request->user()->id,
+                'issued_at' => $payload['issued_at'] ?? now(),
+                'route' => $payload['route'],
+                'payment_type' => $payload['payment_type'],
+                'status' => $payload['status'] ?? RemissionStatus::Confirmed->value,
+                'observations' => $payload['observations'] ?? null,
+                'gps_location' => $payload['gps_location'] ?? null,
+                'total_amount' => $items->sum('subtotal'),
+            ]);
+
+            foreach ($items as $item) {
+                $remission->products()->attach($item['product_id'], [
+                    'quantity' => $item['quantity'],
+                    'unit_price_snapshot' => $item['unit_price_snapshot'],
+                    'subtotal' => $item['subtotal'],
+                ]);
+            }
+
+            return $remission;
+        });
+
+        $remission->load(['client', 'user', 'products']);
+
+        if ($remission->status === RemissionStatus::Confirmed) {
+            $recipients = app(RemissionEmailRouter::class)->recipientsFor($remission);
+            Mail::to($recipients)->queue(new RemisionCreada($remission));
+        }
+
+        return RemissionResource::make($remission);
+    }
+
+    public function show(Remission $remission): RemissionResource
+    {
+        return RemissionResource::make($remission->load(['client', 'user', 'products']));
+    }
+
+    public function signature(SignatureRequest $request, Remission $remission): RemissionResource
+    {
+        $remission->clearMediaCollection('signature');
+        $remission->addMediaFromRequest('signature')
+            ->toMediaCollection('signature', 'local');
+
+        return RemissionResource::make($remission->load(['client', 'user', 'products']));
+    }
+}
