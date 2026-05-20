@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CatalogController;
 use App\Http\Controllers\Api\V1\ClientController;
@@ -7,9 +9,11 @@ use App\Http\Controllers\Api\V1\ProductController;
 use App\Http\Controllers\Api\V1\RemissionController;
 use Illuminate\Support\Facades\Route;
 
-Route::post('login', [AuthController::class, 'login']);
+// 6 intentos/min/IP+email para mitigar fuerza bruta sobre el login.
+Route::middleware('throttle:api-login')
+    ->post('login', [AuthController::class, 'login']);
 
-Route::middleware('auth:sanctum')->group(function (): void {
+Route::middleware(['auth:sanctum', 'throttle:api'])->group(function (): void {
     Route::post('logout', [AuthController::class, 'logout']);
     Route::get('me', [AuthController::class, 'me']);
 
@@ -21,7 +25,10 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::get('clients/{client}/products', [ProductController::class, 'byClient']);
 
     Route::get('remissions', [RemissionController::class, 'index']);
-    Route::post('remissions', [RemissionController::class, 'store']);
+    // Crear remisiones tiene un throttle más estricto que el resto.
+    Route::middleware('throttle:api-write')
+        ->post('remissions', [RemissionController::class, 'store']);
     Route::get('remissions/{remission}', [RemissionController::class, 'show']);
-    Route::post('remissions/{remission}/signature', [RemissionController::class, 'signature']);
+    Route::middleware('throttle:api-write')
+        ->post('remissions/{remission}/signature', [RemissionController::class, 'signature']);
 });

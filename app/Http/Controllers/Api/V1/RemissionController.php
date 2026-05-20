@@ -51,7 +51,8 @@ class RemissionController extends Controller
                 'payment_type' => $payload['payment_type'],
                 'status' => $payload['status'] ?? RemissionStatus::Confirmed->value,
                 'observations' => $payload['observations'] ?? null,
-                'gps_location' => $payload['gps_location'] ?? null,
+                'gps_lat' => $payload['gps_lat'] ?? null,
+                'gps_lng' => $payload['gps_lng'] ?? null,
                 'total_amount' => $items->sum('subtotal'),
             ]);
 
@@ -84,7 +85,7 @@ class RemissionController extends Controller
     public function signature(SignatureRequest $request, Remission $remission): RemissionResource
     {
         $remission->clearMediaCollection('signature');
-        $remission->addMediaFromRequest('signature')
+        $remission->addMedia($request->file('signature'))
             ->toMediaCollection('signature', 'local');
 
         return RemissionResource::make($remission->load(['client', 'user', 'products']));

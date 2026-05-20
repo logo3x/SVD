@@ -17,6 +17,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Facades\Auth;
 
 class RemissionForm
 {
@@ -50,7 +51,7 @@ class RemissionForm
                             ->relationship('user', 'name')
                             ->searchable()
                             ->preload()
-                            ->default(fn () => auth()->id())
+                            ->default(fn () => Auth::id())
                             ->required(),
                         DateTimePicker::make('issued_at')
                             ->label('Fecha y hora')
@@ -179,9 +180,20 @@ class RemissionForm
                             ->label('Observaciones')
                             ->rows(2)
                             ->columnSpanFull(),
-                        TextInput::make('gps_location')
-                            ->label('Ubicación GPS')
-                            ->placeholder('lat,lng'),
+                        TextInput::make('gps_lat')
+                            ->label('GPS Latitud')
+                            ->numeric()
+                            ->step('0.00000001')
+                            ->minValue(-90)
+                            ->maxValue(90)
+                            ->placeholder('7.06530000'),
+                        TextInput::make('gps_lng')
+                            ->label('GPS Longitud')
+                            ->numeric()
+                            ->step('0.00000001')
+                            ->minValue(-180)
+                            ->maxValue(180)
+                            ->placeholder('-73.85470000'),
                         SpatieMediaLibraryFileUpload::make('signature')
                             ->label('Firma digital del cliente')
                             ->collection('signature')

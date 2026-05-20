@@ -17,7 +17,8 @@ return new class extends Migration
             $table->string('payment_type', 64);
             $table->string('status', 32)->default('confirmed');
             $table->text('observations')->nullable();
-            $table->string('gps_location')->nullable();
+            $table->decimal('gps_lat', 10, 8)->nullable();
+            $table->decimal('gps_lng', 11, 8)->nullable();
             $table->unsignedBigInteger('total_amount')->default(0);
             $table->timestamps();
             $table->softDeletes();

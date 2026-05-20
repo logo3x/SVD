@@ -12,14 +12,27 @@ class MasterProductCatalogSeeder extends Seeder
     /**
      * Catálogo maestro inicial. Replica los ~31 productos del sistema anterior
      * pero como UN solo registro cada uno (no duplicados por cliente).
+     *
+     * Por seguridad, sólo INSERTA productos nuevos por SKU. Nunca sobreescribe
+     * un producto existente (los precios de producción quedan intactos).
+     * Para forzar reescritura usar la opción --reset:
+     *     php artisan db:seed --class=MasterProductCatalogSeeder --force
+     *     ARTISAN_CMD="--reset" php artisan db:seed --class=MasterProductCatalogSeeder
      */
     public function run(): void
     {
+        $reset = (bool) env('SEED_RESET_CATALOG', false);
+
         foreach ($this->catalog() as $row) {
-            Product::updateOrCreate(
-                ['sku' => $row['sku']],
-                $row + ['is_default_for_new_clients' => true, 'is_active' => true],
-            );
+            $defaults = $row + ['is_default_for_new_clients' => true, 'is_active' => true];
+
+            if ($reset) {
+                Product::updateOrCreate(['sku' => $row['sku']], $defaults);
+
+                continue;
+            }
+
+            Product::firstOrCreate(['sku' => $row['sku']], $defaults);
         }
     }
 

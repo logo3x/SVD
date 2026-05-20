@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
 use App\Models\Remission;
@@ -20,7 +22,7 @@ class RemissionsXlsxExporter
     public function streamDownload(Builder $query, string $filename = 'remisiones.xlsx'): StreamedResponse
     {
         $response = new StreamedResponse(function () use ($query): void {
-            $writer = new Writer();
+            $writer = new Writer;
             $writer->openToFile('php://output');
 
             $writer->addRow($this->headerRow());
@@ -47,7 +49,7 @@ class RemissionsXlsxExporter
     private function headerRow(): Row
     {
         $border = new Border(new BorderPart(Border::BOTTOM, Color::BLACK, Border::WIDTH_THIN));
-        $style = (new Style())
+        $style = (new Style)
             ->setFontBold()
             ->setFontColor(Color::WHITE)
             ->setBackgroundColor(Color::DARK_BLUE)

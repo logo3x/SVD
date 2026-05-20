@@ -206,9 +206,60 @@ sudo supervisorctl restart svd-queue:*
 
 ## Backups recomendados
 
+Tres niveles:
+
+### Manual rápido (mínimo viable)
+
 - **DB**: `mysqldump --single-transaction svd > svd-$(date +%Y%m%d).sql` diario, retención 30 días.
 - **Media**: `storage/app/private/` (firmas, contratos, logos) — rsync o snapshots de volumen.
 - **`.env`**: respaldo seguro fuera del servidor (1Password, vault).
+
+### Automatizado con `spatie/laravel-backup` (recomendado)
+
+Instala el paquete y schedule diario:
+
+```sh
+composer require spatie/laravel-backup
+php artisan vendor:publish --provider="Spatie\Backup\BackupServiceProvider"
+```
+
+Edita `config/backup.php`:
+
+```php
+'source' => [
+    'files' => [
+        'include' => [base_path('storage/app/private'), base_path('.env')],
+    ],
+    'databases' => ['mysql'],
+],
+'destination' => [
+    'disks' => ['local', 's3'],  // configurar S3 en config/filesystems.php
+],
+'notifications' => [
+    'mail' => ['to' => 'ops@tu-dominio.com'],
+    'slack' => ['webhook_url' => env('SLACK_WEBHOOK_URL')],
+],
+```
+
+Schedule diario (en `routes/console.php`):
+
+```php
+use Illuminate\Support\Facades\Schedule;
+
+Schedule::command('backup:clean')->daily()->at('01:00');
+Schedule::command('backup:run')->daily()->at('01:30');
+Schedule::command('backup:monitor')->daily()->at('06:00');
+```
+
+Agrega un cron de sistema que dispare el scheduler de Laravel cada minuto:
+
+```cron
+* * * * * cd /var/www/svd && php artisan schedule:run >> /dev/null 2>&1
+```
+
+### Snapshots de servidor
+
+Si despliegas en VPS gestionado (DigitalOcean, Hetzner, AWS Lightsail), activa snapshots diarios del volumen completo. Cubre el caso "se cayó el disco" sin necesidad de logic-level restore.
 
 ## Monitoreo
 

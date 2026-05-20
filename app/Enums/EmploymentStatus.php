@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Enums;
 
 use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasLabel;
 
-enum EmploymentStatus: string implements HasLabel, HasColor
+enum EmploymentStatus: string implements HasColor, HasLabel
 {
     case Active = 'active';
     case Suspended = 'suspended';

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use App\Enums\DeliveryRoute;
@@ -32,6 +34,8 @@ class Remission extends Model implements HasMedia
             'payment_type' => PaymentType::class,
             'status' => RemissionStatus::class,
             'total_amount' => 'integer',
+            'gps_lat' => 'decimal:8',
+            'gps_lng' => 'decimal:8',
         ];
     }
 

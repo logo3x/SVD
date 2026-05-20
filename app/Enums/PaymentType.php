@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Enums;
 
 use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasLabel;
 
-enum PaymentType: string implements HasLabel, HasColor
+enum PaymentType: string implements HasColor, HasLabel
 {
     case Cash = 'cash';
     case CashForBilling = 'cash_for_billing';

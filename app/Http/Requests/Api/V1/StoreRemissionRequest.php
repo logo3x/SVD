@@ -27,7 +27,8 @@ class StoreRemissionRequest extends FormRequest
             'payment_type' => ['required', Rule::enum(PaymentType::class)],
             'status' => ['nullable', Rule::enum(RemissionStatus::class)],
             'observations' => ['nullable', 'string', 'max:2000'],
-            'gps_location' => ['nullable', 'string', 'max:64'],
+            'gps_lat' => ['nullable', 'numeric', 'between:-90,90'],
+            'gps_lng' => ['nullable', 'numeric', 'between:-180,180'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => [
                 'required',

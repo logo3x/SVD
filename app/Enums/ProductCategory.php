@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Enums;
 
 use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasLabel;
 
-enum ProductCategory: string implements HasLabel, HasColor
+enum ProductCategory: string implements HasColor, HasLabel
 {
     case Ice = 'ice';
     case Water = 'water';

@@ -2,10 +2,11 @@
 
 namespace App\Http\Resources\Api\V1;
 
+use App\Models\Remission;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin \App\Models\Remission */
+/** @mixin Remission */
 class RemissionResource extends JsonResource
 {
     /**
@@ -28,7 +29,8 @@ class RemissionResource extends JsonResource
                 'label' => $this->payment_type?->getLabel(),
             ],
             'observations' => $this->observations,
-            'gps_location' => $this->gps_location,
+            'gps_lat' => $this->gps_lat !== null ? (float) $this->gps_lat : null,
+            'gps_lng' => $this->gps_lng !== null ? (float) $this->gps_lng : null,
             'total_amount' => (int) $this->total_amount,
             'client' => $this->whenLoaded('client', fn () => [
                 'id' => $this->client->id,
