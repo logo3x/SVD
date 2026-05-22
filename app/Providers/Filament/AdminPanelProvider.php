@@ -31,6 +31,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->brandName('SVD · Admin')
+            ->spa()
             ->login(SvdLogin::class)
             ->passwordReset()
             ->profile()

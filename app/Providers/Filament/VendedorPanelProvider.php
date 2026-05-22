@@ -27,6 +27,7 @@ class VendedorPanelProvider extends PanelProvider
             ->id('vendedor')
             ->path('vendedor')
             ->brandName('SVD · Vendedor')
+            ->spa()
             ->login(SvdLogin::class)
             ->passwordReset()
             ->profile()
