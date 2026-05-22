@@ -16,6 +16,11 @@ class UltimasRemisionesTable extends TableWidget
 
     protected int|string|array $columnSpan = 'full';
 
+    /**
+     * Lazy load: la tabla llega después del primer render del dashboard.
+     */
+    protected static bool $isLazy = true;
+
     public function table(Table $table): Table
     {
         return $table

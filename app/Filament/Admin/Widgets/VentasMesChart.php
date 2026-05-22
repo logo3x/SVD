@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Filament\Admin\Widgets;
 
 use App\Models\Remission;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 
 class VentasMesChart extends ChartWidget
 {
@@ -12,15 +15,26 @@ class VentasMesChart extends ChartWidget
 
     protected int|string|array $columnSpan = 'full';
 
+    /**
+     * Lazy load: el chart NO bloquea el primer render del dashboard,
+     * llega después via Livewire. Mejora drásticamente el TTFB inicial.
+     */
+    protected static bool $isLazy = true;
+
     protected function getData(): array
     {
-        $start = Carbon::now()->subDays(29)->startOfDay();
-        $rows = Remission::query()
-            ->where('issued_at', '>=', $start)
-            ->selectRaw('DATE(issued_at) AS day, SUM(total_amount) AS total')
-            ->groupBy('day')
-            ->pluck('total', 'day');
+        $rows = Cache::remember('svd.dashboard.chart.30d', now()->addSeconds(120), function (): array {
+            $start = Carbon::now()->subDays(29)->startOfDay();
 
+            return Remission::query()
+                ->where('issued_at', '>=', $start)
+                ->selectRaw('DATE(issued_at) AS day, SUM(total_amount) AS total')
+                ->groupBy('day')
+                ->pluck('total', 'day')
+                ->all();
+        });
+
+        $start = Carbon::now()->subDays(29)->startOfDay();
         $labels = [];
         $data = [];
 

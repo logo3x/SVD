@@ -25,6 +25,14 @@ return new class extends Migration
 
             $table->index('payment_type');
             $table->index('status');
+
+            // Índices compuestos para los queries más frecuentes:
+            // - panel vendedor: WHERE user_id = ? ORDER BY issued_at DESC
+            // - detalle cliente: WHERE client_id = ? ORDER BY issued_at DESC
+            // - reportes:        WHERE issued_at BETWEEN ? AND status = ?
+            $table->index(['user_id', 'issued_at']);
+            $table->index(['client_id', 'issued_at']);
+            $table->index(['issued_at', 'status']);
         });
     }
 

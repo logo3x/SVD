@@ -73,4 +73,17 @@ class RemissionResource extends Resource
                 SoftDeletingScope::class,
             ]);
     }
+
+    /**
+     * Eager-load cliente y vendedor en el listado para evitar N+1.
+     * Selecciona solo las columnas que la tabla muestra.
+     */
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->with([
+                'client:id,name,nit',
+                'user:id,name',
+            ]);
+    }
 }

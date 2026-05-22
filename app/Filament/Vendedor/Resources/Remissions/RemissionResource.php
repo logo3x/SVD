@@ -49,11 +49,14 @@ class RemissionResource extends Resource
     }
 
     /**
-     * Restringe el listado a las remisiones del vendedor logueado.
+     * Restringe el listado a las remisiones del vendedor logueado y
+     * eager-loadea cliente para evitar N+1 en la tabla.
      */
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->where('user_id', Auth::id());
+        return parent::getEloquentQuery()
+            ->where('user_id', Auth::id())
+            ->with(['client:id,name,nit']);
     }
 
     public static function getPages(): array
