@@ -2,6 +2,10 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Admin\Widgets\UltimasRemisionesTable;
+use App\Filament\Admin\Widgets\VentasMesChart;
+use App\Filament\Admin\Widgets\VentasOverview;
+use App\Filament\Auth\Login as SvdLogin;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -11,9 +15,6 @@ use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use App\Filament\Admin\Widgets\UltimasRemisionesTable;
-use App\Filament\Admin\Widgets\VentasMesChart;
-use App\Filament\Admin\Widgets\VentasOverview;
 use Filament\Widgets\AccountWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -30,7 +31,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->brandName('SVD · Admin')
-            ->login()
+            ->login(SvdLogin::class)
             ->passwordReset()
             ->profile()
             ->colors([

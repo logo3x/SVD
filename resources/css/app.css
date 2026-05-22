@@ -6,6 +6,485 @@
 @source '../**/*.js';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    --font-sans:
+        'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-serif: 'Instrument Serif', ui-serif, Georgia, 'Times New Roman', serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+    /* SVD editorial palette */
+    --color-paper: #f3eee5;
+    --color-paper-warm: #efe8db;
+    --color-paper-mid: #e6dfd0;
+    --color-ink: #0a0a0a;
+    --color-ink-soft: #2a2a28;
+    --color-ink-mute: #6c6a64;
+    --color-ink-faint: #a09c92;
+    --color-rule: rgba(10, 10, 10, 0.14);
+    --color-rule-strong: rgba(10, 10, 10, 0.32);
+    --color-navy: #102a43;
+    --color-navy-deep: #081a2c;
+    --color-terra: #b04420;
+    --color-terra-soft: #d05c33;
+    --color-mint: #2f4f3d;
+}
+
+/* ---------- Base ---------- */
+html {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+}
+
+body {
+    font-feature-settings: 'ss01', 'cv11', 'liga';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+    background-color: var(--color-ink);
+    color: var(--color-paper);
+}
+
+/* ---------- Decorative backgrounds ---------- */
+.bg-blueprint {
+    background-image:
+        linear-gradient(to right, rgba(10, 10, 10, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(10, 10, 10, 0.04) 1px, transparent 1px);
+    background-size: 56px 56px;
+    background-position: -1px -1px;
+}
+
+.bg-grain {
+    background-image:
+        radial-gradient(rgba(10, 10, 10, 0.05) 1px, transparent 1px);
+    background-size: 3px 3px;
+}
+
+/* ---------- Hairlines ---------- */
+.rule-t { border-top: 1px solid var(--color-rule); }
+.rule-b { border-bottom: 1px solid var(--color-rule); }
+.rule-l { border-left: 1px solid var(--color-rule); }
+.rule-r { border-right: 1px solid var(--color-rule); }
+.rule-strong-b { border-bottom: 1px solid var(--color-ink); }
+.rule-strong-t { border-top: 1px solid var(--color-ink); }
+
+/* ---------- Editorial display ---------- */
+.font-display {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: -0.018em;
+    line-height: 0.92;
+}
+
+.display-xl {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(4rem, 13vw, 13.5rem);
+    line-height: 0.86;
+    letter-spacing: -0.035em;
+}
+
+.display-lg {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(2.5rem, 6vw, 5rem);
+    line-height: 0.95;
+    letter-spacing: -0.025em;
+}
+
+.display-md {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(1.5rem, 2.5vw, 2.5rem);
+    line-height: 1;
+    letter-spacing: -0.015em;
+}
+
+.eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-ink-soft);
+}
+
+.label-mono {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-ink-mute);
+}
+
+.mono { font-family: var(--font-mono); }
+.serif { font-family: var(--font-serif); }
+
+/* ---------- Marquee for stat strip ---------- */
+@keyframes svd-marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+}
+.marquee-track {
+    animation: svd-marquee 32s linear infinite;
+    will-change: transform;
+}
+
+/* ---------- Reveal on load ---------- */
+@keyframes svd-rise {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.rise { opacity: 0; animation: svd-rise 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) forwards; }
+.rise-1 { animation-delay: 0.05s; }
+.rise-2 { animation-delay: 0.18s; }
+.rise-3 { animation-delay: 0.32s; }
+.rise-4 { animation-delay: 0.46s; }
+.rise-5 { animation-delay: 0.6s; }
+
+@keyframes svd-line {
+    from { transform: scaleX(0); }
+    to   { transform: scaleX(1); }
+}
+.draw-rule { transform-origin: left center; animation: svd-line 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+
+/* ---------- Buttons ---------- */
+.btn-ink {
+    background-color: var(--color-ink);
+    color: var(--color-paper);
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+.btn-ink:hover { background-color: var(--color-navy-deep); transform: translateY(-1px); }
+
+.btn-ghost {
+    border: 1px solid var(--color-ink);
+    color: var(--color-ink);
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+.btn-ghost:hover { background-color: var(--color-ink); color: var(--color-paper); }
+
+.btn-terra {
+    background-color: var(--color-terra);
+    color: var(--color-paper);
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+.btn-terra:hover { background-color: #962f12; transform: translateY(-1px); }
+
+/* ---------- Hover underline reveal ---------- */
+.link-rev {
+    position: relative;
+    display: inline-block;
+    line-height: 1.2;
+}
+.link-rev::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -2px;
+    height: 1px;
+    background-color: currentColor;
+    transform: scaleX(0);
+    transform-origin: right center;
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.link-rev:hover::after { transform-origin: left center; transform: scaleX(1); }
+
+/* ============================================================
+   SVD Login (Filament auth pages) — split-screen editorial
+============================================================ */
+.svd-login { font-feature-settings: 'ss01', 'cv11', 'liga'; }
+
+.svd-login-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    min-height: 100dvh;
+}
+
+@media (min-width: 1024px) {
+    .svd-login-grid { grid-template-columns: 5fr 6fr; }
+}
+
+.svd-login-masthead {
+    position: relative;
+    padding: 2rem 1.75rem;
+    background-color: var(--color-ink);
+    color: var(--color-paper);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 3rem;
+}
+@media (min-width: 1024px) { .svd-login-masthead { padding: 3rem 3.5rem; } }
+
+.svd-login-top { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 0.5rem; }
+
+.svd-login-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    opacity: 0.85;
+    display: flex; align-items: center; gap: 0.625rem;
+}
+
+.svd-login-dot { display: inline-block; width: 0.5rem; height: 0.5rem; }
+
+.svd-login-meta {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    opacity: 0.55;
+    display: flex; gap: 0.625rem;
+    margin-left: 1.125rem;
+}
+.svd-login-meta-sep { opacity: 0.5; }
+
+.svd-login-center { position: relative; z-index: 1; }
+
+.svd-login-tag {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    opacity: 0.55;
+    margin-bottom: 1.25rem;
+}
+
+.svd-login-headline {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(3.5rem, 8vw, 6rem);
+    line-height: 0.9;
+    letter-spacing: -0.025em;
+    margin: 0;
+}
+.svd-login-headline em { font-style: italic; }
+
+.svd-login-tagline {
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.55;
+    opacity: 0.7;
+    max-width: 26ch;
+    margin-top: 1.75rem;
+    margin-bottom: 0;
+}
+
+.svd-login-bottom { position: relative; z-index: 1; }
+
+.svd-login-watermark {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: clamp(5rem, 10vw, 7.5rem);
+    line-height: 0.85;
+    opacity: 0.18;
+    user-select: none;
+    margin-bottom: 1.5rem;
+}
+
+.svd-login-foot {
+    border-top: 1px solid rgba(243, 238, 229, 0.18);
+    padding-top: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.65;
+}
+
+.svd-login-foot-link { color: inherit; text-decoration: none; transition: opacity 0.2s ease; }
+.svd-login-foot-link:hover { opacity: 0.7; }
+
+.svd-login-blueprint {
+    position: absolute; inset: 0;
+    background-image:
+        linear-gradient(to right, rgba(243, 238, 229, 0.045) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(243, 238, 229, 0.045) 1px, transparent 1px);
+    background-size: 56px 56px;
+    background-position: -1px -1px;
+    pointer-events: none;
+}
+
+/* ---------- Form column ---------- */
+.svd-login-form-col {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 3rem 1.5rem;
+}
+@media (min-width: 1024px) { .svd-login-form-col { padding: 4rem 5rem; } }
+
+.svd-login-form-frame { width: 100%; max-width: 460px; margin: 0 auto; }
+
+.svd-login-form-head { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1.25rem; }
+
+.svd-login-form-num {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 3rem;
+    line-height: 0.9;
+}
+
+.svd-login-form-head-text { padding-top: 0.375rem; }
+
+.svd-login-form-head-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-ink-mute);
+    margin-bottom: 0.375rem;
+}
+
+.svd-login-form-head-title {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 1.5rem;
+    line-height: 1.1;
+}
+
+.svd-login-rule { height: 1px; width: 100%; margin-bottom: 1.75rem; }
+.svd-login-rule-soft { height: 1px; width: 100%; background-color: var(--color-rule); margin: 1.5rem 0; }
+
+/* Filament input overrides — minimal-line aesthetic */
+.svd-login-form-body :where(.fi-fo-field-wrp-label, label) {
+    font-family: var(--font-mono) !important;
+    font-size: 11px !important;
+    letter-spacing: 0.14em !important;
+    text-transform: uppercase;
+    color: var(--color-ink-mute) !important;
+    font-weight: 400 !important;
+}
+
+.svd-login-form-body :where(input[type="email"], input[type="password"], input[type="text"]) {
+    background-color: transparent !important;
+    border: none !important;
+    border-bottom: 1px solid var(--color-rule) !important;
+    border-radius: 0 !important;
+    padding: 0.75rem 0 !important;
+    font-family: var(--font-sans) !important;
+    font-size: 16px !important;
+    color: var(--color-ink) !important;
+    box-shadow: none !important;
+    transition: border-color 0.2s ease !important;
+}
+
+.svd-login-form-body :where(input[type="email"], input[type="password"], input[type="text"]):focus {
+    outline: none !important;
+    border-bottom-color: var(--color-ink) !important;
+    box-shadow: none !important;
+}
+
+.svd-login-form-body :where(.fi-input-wrp) {
+    background-color: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.svd-login-form-body :where(.fi-fo-component-ctn) { margin-bottom: 1.25rem; }
+
+.svd-login-form-body :where(button[type="submit"], .fi-ac-action.fi-btn) {
+    background-color: var(--color-ink) !important;
+    color: var(--color-paper) !important;
+    font-family: var(--font-mono) !important;
+    font-size: 12px !important;
+    letter-spacing: 0.14em !important;
+    text-transform: uppercase;
+    font-weight: 400 !important;
+    padding: 0.95rem 1.5rem !important;
+    border-radius: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    transition: background-color 0.2s ease, transform 0.2s ease !important;
+    width: 100%;
+    justify-content: center;
+}
+
+.svd-login-form-body :where(button[type="submit"]:hover) {
+    background-color: var(--color-navy-deep) !important;
+    transform: translateY(-1px);
+}
+
+.svd-login-form-body :where(input[type="checkbox"]) {
+    accent-color: var(--color-ink) !important;
+}
+
+.svd-login-form-body :where(a) {
+    font-family: var(--font-mono) !important;
+    font-size: 11px !important;
+    letter-spacing: 0.12em !important;
+    text-transform: uppercase;
+    color: var(--color-ink) !important;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    text-decoration-thickness: 0.5px;
+}
+
+.svd-login-form-foot-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-ink-mute);
+    margin-bottom: 0.5rem;
+}
+
+.svd-login-form-foot-creds {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--color-ink);
+}
+
+.svd-login-form-colofon {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--color-ink-mute);
+    text-align: center;
+    margin-top: 3rem;
+}
+.svd-login-form-colofon em {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 13px;
+    letter-spacing: 0;
+}
+
+@media (max-width: 1023px) {
+    .svd-login-masthead { min-height: 60vh; padding-bottom: 2.5rem; }
+    .svd-login-form-col { padding-top: 2.5rem; padding-bottom: 2.5rem; }
+}
+
+/* ---------- Decorative cross ticks (blueprint corners) ---------- */
+.tick {
+    position: relative;
+}
+.tick::before,
+.tick::after {
+    content: '';
+    position: absolute;
+    background-color: var(--color-ink);
+}
+.tick::before {
+    width: 10px; height: 1px;
+    left: -5px; top: 50%;
+}
+.tick::after {
+    width: 1px; height: 10px;
+    left: 0; top: calc(50% - 5px);
 }

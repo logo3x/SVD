@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Auth\Login as SvdLogin;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -26,7 +27,7 @@ class VendedorPanelProvider extends PanelProvider
             ->id('vendedor')
             ->path('vendedor')
             ->brandName('SVD · Vendedor')
-            ->login()
+            ->login(SvdLogin::class)
             ->passwordReset()
             ->profile()
             ->colors([
