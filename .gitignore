@@ -3,6 +3,7 @@
 .playwright-mcp/
 .env
 CREDENTIALS.md
+/docs/*.pdf
 .env.backup
 .env.production
 .phpactor.json
