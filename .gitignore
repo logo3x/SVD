@@ -2,6 +2,7 @@
 .DS_Store
 .playwright-mcp/
 .env
+CREDENTIALS.md
 .env.backup
 .env.production
 .phpactor.json
