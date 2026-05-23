@@ -13,6 +13,9 @@ class LandingPagePerformanceTest extends TestCase
     {
         $this->withoutVite();
 
+        // Warm-up para evitar flake por cold-start del kernel + view compiler.
+        $this->get('/');
+
         $start = microtime(true);
         $response = $this->get('/');
         $duration = microtime(true) - $start;

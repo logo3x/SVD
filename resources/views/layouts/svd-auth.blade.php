@@ -31,7 +31,7 @@
                 <div class="svd-login-bottom">
                     <div class="svd-login-foot">
                         <a href="/" class="svd-login-foot-link">← Volver al inicio</a>
-                        <span class="svd-login-foot-ref">ICEMAN · SVD</span>
+                        <span class="svd-login-foot-ref">SVD · 2026</span>
                     </div>
                 </div>
 
@@ -73,7 +73,7 @@
                 </div>
 
                 <div class="svd-login-form-colofon">
-                    SVD · Plataforma institucional · <em>ICEMAN SERVICES</em> · © {{ now()->year }}
+                    SVD · Plataforma institucional · © {{ now()->year }}
                 </div>
             </main>
 

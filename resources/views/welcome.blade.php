@@ -73,7 +73,7 @@
                 </h1>
 
                 <p class="lead max-w-[58ch] mb-9">
-                    SVD es la plataforma institucional de ICEMAN para administrar el catálogo,
+                    SVD es la plataforma institucional para administrar el catálogo,
                     los clientes, las rutas de reparto y los comprobantes firmados —
                     sin papel, sin Excel paralelos y con auditoría completa.
                 </p>
@@ -198,7 +198,7 @@
                     <span class="hl-primary">Un único origen de la verdad.</span>
                 </h2>
                 <p class="lead max-w-[60ch]">
-                    Todo el portafolio de ICEMAN administrado desde un solo catálogo. Precios maestros,
+                    Todo el portafolio administrado desde un solo catálogo. Precios maestros,
                     overrides por cliente y precio histórico congelado en cada remisión.
                 </p>
             </div>
@@ -675,7 +675,7 @@
                     <div>
                         <div class="mono text-[10px] tracking-[0.18em] uppercase mb-1.5" style="color: rgba(255, 255, 255, 0.55); font-weight: 500;">SOPORTE</div>
                         <div class="mono text-[12px] leading-[1.7]" style="color: rgba(255, 255, 255, 0.85);">
-                            ICEMAN SERVICES<br>
+                            Soporte interno SVD<br>
                             Barrancabermeja, CO
                         </div>
                     </div>
@@ -735,7 +735,7 @@
                 <div class="mono text-[10.5px] tracking-[0.16em] uppercase mb-3" style="color: var(--color-ink-mute); font-weight: 500;">CONTACTO</div>
                 <p class="text-[13.5px] leading-[1.6]" style="color: var(--color-ink-soft);">
                     Barrancabermeja, Santander · Colombia<br>
-                    ICEMAN SERVICES — Confipetrol.
+                    Plataforma institucional SVD.
                 </p>
             </div>
         </div>
@@ -744,7 +744,7 @@
             <div class="foot-brand-wordmark" style="font-size: clamp(2rem, 4vw, 3rem);">
                 SVD<span style="color: var(--color-primary);">.</span>
             </div>
-            <p class="mono text-[11px]" style="color: var(--color-ink-mute);">© {{ now()->year }} · ICEMAN SERVICES · Privado</p>
+            <p class="mono text-[11px]" style="color: var(--color-ink-mute);">© {{ now()->year }} · SVD · Privado</p>
         </div>
 
     </div>

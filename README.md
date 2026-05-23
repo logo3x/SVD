@@ -1,6 +1,6 @@
 # SVD — Sistema de Ventas y Despachos
 
-Reconstrucción moderna del sistema `ventas.icemanservice.com.co` (Laravel 8) sobre **Laravel 13 + Filament v5 + PHP 8.5**, con catálogo de productos único + override por cliente, RBAC vía Filament Shield, API REST para app móvil, reportes Excel (OpenSpout) y comprobantes PDF (DomPDF).
+Plataforma institucional de gestión de ventas y despachos sobre **Laravel 13 + Filament v5 + PHP 8.5**, con catálogo de productos único + override por cliente, RBAC vía Filament Shield, API REST para app móvil, reportes Excel (OpenSpout) y comprobantes PDF (DomPDF).
 
 ## Stack
 
@@ -123,4 +123,4 @@ php artisan test --compact
 
 ## Licencia
 
-Privado — ICEMAN SERVICES / Confipetrol.
+Privado.

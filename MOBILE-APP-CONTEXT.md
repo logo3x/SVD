@@ -9,7 +9,7 @@
 
 ## 1. Objetivo de la App
 
-Permitir a vendedores/repartidores de ICEMAN registrar remisiones de venta **en terreno**, con:
+Permitir a vendedores/repartidores registrar remisiones de venta **en terreno**, con:
 
 - Selección de cliente y productos con precios resueltos por cliente (override de catálogo).
 - Captura de firma digital del cliente.
@@ -229,7 +229,7 @@ Respuesta 201:
 }
 ```
 
-Al guardar la remisión confirmada, el backend encola automáticamente un email (`RemisionCreada`) con PDF adjunto, routeado según `payment_type` a los buzones de ICEMAN + email del cliente.
+Al guardar la remisión confirmada, el backend encola automáticamente un email (`RemisionCreada`) con PDF adjunto, routeado según `payment_type` a los buzones internos configurados en `BrandingSettings` + email del cliente.
 
 #### `POST /api/v1/remissions/{id}/signature` (autenticado, multipart)
 Throttle: **30/min** por usuario.
