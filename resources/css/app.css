@@ -27,6 +27,11 @@
     --color-terra: #b04420;
     --color-terra-soft: #d05c33;
     --color-mint: #2f4f3d;
+
+    /* Glacial accent — refleja el producto principal (hielo/agua) */
+    --color-frost: #b8d8e3;
+    --color-frost-mid: #6fa9bd;
+    --color-frost-deep: #1f5d75;
 }
 
 /* ---------- Base ---------- */
@@ -469,6 +474,190 @@ body {
     .svd-login-masthead { min-height: 60vh; padding-bottom: 2.5rem; }
     .svd-login-form-col { padding-top: 2.5rem; padding-bottom: 2.5rem; }
 }
+
+/* ============================================================
+   Landing — product-themed components (catalog, flow, ops)
+============================================================ */
+
+/* Brand mark in header */
+.brand-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-ink);
+    width: 32px;
+    height: 32px;
+    transition: transform 0.4s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.brand-mark:hover { transform: rotate(6deg); }
+
+/* Pulsing dot for "in operation" indicator */
+.dot-pulse {
+    display: inline-block;
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 50%;
+    background-color: var(--color-frost-deep);
+    box-shadow: 0 0 0 0 rgba(31, 93, 117, 0.5);
+    animation: svd-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+@keyframes svd-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(31, 93, 117, 0.5); }
+    50% { box-shadow: 0 0 0 8px rgba(31, 93, 117, 0); }
+}
+
+/* Product card — hover lift + illustration tint */
+.product-card {
+    background-color: transparent;
+    transition: background-color 0.3s ease;
+    position: relative;
+}
+.product-card:hover {
+    background-color: var(--color-paper-warm);
+}
+.product-illus {
+    color: var(--color-ink);
+    opacity: 0.85;
+    transition: opacity 0.3s ease, transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.product-card:hover .product-illus {
+    opacity: 1;
+    transform: translateY(-2px);
+}
+
+/* Operations icons */
+.op-icon {
+    color: var(--color-ink);
+    width: 42px;
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    border: 1px solid var(--color-rule);
+    border-radius: 2px;
+    background-color: var(--color-paper);
+}
+
+/* Price comparison demo block */
+.price-demo {
+    background-color: var(--color-paper);
+    padding-top: 1rem;
+}
+
+/* Stat numbers — subtle hover */
+.stat-number {
+    transition: color 0.3s ease;
+}
+div:hover > .stat-number { color: var(--color-terra); }
+
+/* ---------- Flow timeline ---------- */
+.flow-timeline {
+    margin-top: 1rem;
+}
+.flow-grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: 0;
+    border-top: 1px solid var(--color-ink);
+    border-bottom: 1px solid var(--color-rule);
+}
+@media (min-width: 768px) {
+    .flow-grid { grid-template-columns: repeat(5, 1fr); }
+}
+.flow-step {
+    position: relative;
+    padding: 1.75rem 1.5rem;
+    border-bottom: 1px solid var(--color-rule);
+}
+@media (min-width: 768px) {
+    .flow-step {
+        border-bottom: none;
+        border-right: 1px solid var(--color-rule);
+    }
+    .flow-step:last-child { border-right: none; }
+}
+.flow-step-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+}
+.flow-step-num {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 2.75rem;
+    line-height: 0.9;
+    color: var(--color-terra);
+}
+.flow-step-tag {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-ink-mute);
+}
+.flow-step-title {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 1.4rem;
+    line-height: 1.05;
+    letter-spacing: -0.012em;
+    color: var(--color-ink);
+    margin-bottom: 0.5rem;
+}
+.flow-step-body {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--color-ink-soft);
+}
+.flow-step-arrow {
+    display: none;
+    position: absolute;
+    right: -11px;
+    top: 38px;
+    color: var(--color-ink-faint);
+    background-color: var(--color-paper);
+    padding: 0 2px;
+}
+@media (min-width: 768px) {
+    .flow-step-arrow { display: inline-block; }
+}
+
+/* Access cards (final section) */
+.access-card {
+    position: relative;
+    overflow: hidden;
+    padding: 1.5rem;
+    border: 1px solid rgba(243, 238, 229, 0.2);
+    transition: border-color 0.3s ease, background-color 0.3s ease, transform 0.3s ease;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+@media (min-width: 1024px) {
+    .access-card { padding: 2rem; }
+}
+.access-card:hover {
+    border-color: var(--color-frost);
+    background-color: rgba(184, 216, 227, 0.06);
+    transform: translateY(-2px);
+}
+.access-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background-color: var(--color-frost);
+    transition: width 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.access-card:hover::before { width: 100%; }
 
 /* ---------- Decorative cross ticks (blueprint corners) ---------- */
 .tick {
