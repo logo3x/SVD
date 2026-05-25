@@ -2,10 +2,11 @@
 
 namespace App\Http\Resources\Api\V1;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin \App\Models\User */
+/** @mixin User */
 class UserResource extends JsonResource
 {
     /**
@@ -18,6 +19,8 @@ class UserResource extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
             'roles' => $this->getRoleNames(),
+            'role_label' => $this->getRoleLabel(),
+            'is_admin' => $this->isAdmin(),
         ];
     }
 }

@@ -50,7 +50,7 @@ class AuthController extends Controller
      */
     private function abilitiesFor(User $user): array
     {
-        if ($user->hasRole('super_admin')) {
+        if ($user->isAdmin()) {
             return ['*'];
         }
 

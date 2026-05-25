@@ -86,6 +86,20 @@ Total: **{{ count($routes) }} rutas** bajo `/api/v1`.
 
 ---
 
+## 3.1 · Roles del sistema
+
+El backend define 3 roles (slugs internos en inglés, labels en español para UI):
+
+| Slug | Label | `is_admin` (en API) | Token abilities | Acceso móvil |
+|------|-------|----------------------|------------------|--------------|
+| `super_admin` | Super Administrador | true | `['*']` | Total |
+| `admin` | Administrador | true | `['*']` | Total |
+| `seller` | Vendedor | false | `['remissions:read','remissions:create','clients:read','products:read']` | Limitado |
+
+La respuesta de `POST /login` y `GET /me` incluye `role_label` (mostrar en UI) e `is_admin` (decidir qué pantallas renderizar). Ver §15 en MOBILE-APP-CONTEXT.md para el detalle del modo administrador en la app móvil.
+
+---
+
 ## 4 · Enums
 
 ### 4.1 `payment_type`

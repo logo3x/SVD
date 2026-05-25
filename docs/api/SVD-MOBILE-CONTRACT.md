@@ -5,8 +5,8 @@
 
 | Campo | Valor |
 |-------|-------|
-| **Versión** | `40080bdf4f13` |
-| **Generado** | `2026-05-25T19:44:28+00:00` |
+| **Versión** | `b21d4769af8b` |
+| **Generado** | `2026-05-25T20:35:35+00:00` |
 | **Base URL (prod)** | `https://svd.example.com/api/v1` |
 
 ---
@@ -94,6 +94,20 @@ Total: **14 rutas** bajo `/api/v1`.
 > Para el detalle completo de payloads, validation rules y respuestas de cada endpoint,
 > consulta `MOBILE-APP-CONTEXT.md` §4 en el repo principal (`https://github.com/logo3x/SVD`).
 > Este contrato lista solo la **superficie** de la API.
+
+---
+
+## 3.1 · Roles del sistema
+
+El backend define 3 roles (slugs internos en inglés, labels en español para UI):
+
+| Slug | Label | `is_admin` (en API) | Token abilities | Acceso móvil |
+|------|-------|----------------------|------------------|--------------|
+| `super_admin` | Super Administrador | true | `['*']` | Total |
+| `admin` | Administrador | true | `['*']` | Total |
+| `seller` | Vendedor | false | `['remissions:read','remissions:create','clients:read','products:read']` | Limitado |
+
+La respuesta de `POST /login` y `GET /me` incluye `role_label` (mostrar en UI) e `is_admin` (decidir qué pantallas renderizar). Ver §15 en MOBILE-APP-CONTEXT.md para el detalle del modo administrador en la app móvil.
 
 ---
 
@@ -202,4 +216,4 @@ cp "$USERPROFILE/Desktop/SVD-MOBILE-CONTRACT.md" docs/SVD-CONTRACT.md
 
 **Repo backend:** `https://github.com/logo3x/SVD`
 **Comando para regenerar:** `php artisan svd:contract --desktop`
-**Versión actual:** `40080bdf4f13` — generado `2026-05-25T19:44:28+00:00`
+**Versión actual:** `b21d4769af8b` — generado `2026-05-25T20:35:35+00:00`

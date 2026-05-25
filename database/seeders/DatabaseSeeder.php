@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
         Role::findOrCreate('super_admin', 'web');
+        $admin = Role::findOrCreate('admin', 'web');
         $seller = Role::findOrCreate('seller', 'web');
 
         // SuperAdmin con bypass total via Shield intercept_gate=before.
@@ -40,6 +41,24 @@ class DatabaseSeeder extends Seeder
             ],
         );
         $vendedor->syncRoles(['seller']);
+
+        // Admin de prueba — acceso completo al panel /admin y a la app móvil.
+        $adminUser = User::firstOrCreate(
+            ['email' => 'admin@svd.test'],
+            [
+                'name' => 'Administrador',
+                'password' => bcrypt('admin'),
+                'email_verified_at' => now(),
+            ],
+        );
+        $adminUser->syncRoles(['admin']);
+
+        // El rol admin recibe todos los permisos generados por Shield
+        // (excepto los reservados a super_admin via intercept_gate).
+        $allPermissions = Permission::all();
+        if ($allPermissions->isNotEmpty()) {
+            $admin->syncPermissions($allPermissions);
+        }
 
         // Permisos mínimos del rol seller — sólo lo que necesita para
         // emitir remisiones desde el panel /vendedor. Los permisos los

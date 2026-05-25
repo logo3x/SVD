@@ -35,14 +35,36 @@ class User extends Authenticatable implements FilamentUser, HasName
     public function canAccessPanel(Panel $panel): bool
     {
         if ($panel->getId() === 'admin') {
-            return $this->hasRole('super_admin') || $this->hasAnyPermission(['page_Dashboard']);
+            return $this->hasAnyRole(['super_admin', 'admin']) || $this->hasAnyPermission(['page_Dashboard']);
         }
 
         if ($panel->getId() === 'vendedor') {
-            return $this->hasAnyRole(['super_admin', 'seller']);
+            return $this->hasAnyRole(['super_admin', 'admin', 'seller']);
         }
 
         return false;
+    }
+
+    /**
+     * Indica si el usuario es admin o super_admin (acceso total al admin
+     * panel y a las funciones admin de la app móvil).
+     */
+    public function isAdmin(): bool
+    {
+        return $this->hasAnyRole(['super_admin', 'admin']);
+    }
+
+    /**
+     * Etiqueta del rol primario en español, para mostrar en UI y API.
+     */
+    public function getRoleLabel(): string
+    {
+        return match (true) {
+            $this->hasRole('super_admin') => 'Super Administrador',
+            $this->hasRole('admin') => 'Administrador',
+            $this->hasRole('seller') => 'Vendedor',
+            default => 'Sin rol',
+        };
     }
 
     public function getFilamentName(): string

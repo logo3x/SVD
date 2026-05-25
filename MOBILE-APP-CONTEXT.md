@@ -555,4 +555,191 @@ php artisan tinker --execute "app(App\Settings\MobileSettings::class)->fill(['ma
 
 ---
 
-**Fin del contexto. Cualquier asistente o desarrollador puede leer este archivo y empezar a construir la app móvil sin más preguntas — todos los endpoints, payloads, validaciones, headers, flujos y módulos del panel admin están aquí.**
+## 15. Modo Administrador en la App Móvil
+
+> Sección añadida el 25 de mayo de 2026 — refleja `main@0da58df+` con el rol `admin` agregado.
+
+### 15.1 Roles del sistema (en español)
+
+El backend maneja **3 roles** (los slugs internos son inglés pero los labels para UI van en español):
+
+| Slug (interno) | Label en UI (español) | Acceso al panel `/admin` | Acceso al panel `/vendedor` | Acceso a la app móvil | Abilities del token |
+|----------------|------------------------|--------------------------|------------------------------|------------------------|---------------------|
+| `super_admin` | Super Administrador | ✅ bypass total | ✅ | ✅ con permisos totales | `['*']` |
+| `admin` | Administrador | ✅ todos los permisos | ✅ | ✅ con permisos totales | `['*']` |
+| `seller` | Vendedor | ❌ | ✅ | ✅ con permisos limitados | `['remissions:read','remissions:create','clients:read','products:read']` |
+
+El payload de `/api/v1/login` y `/api/v1/me` ahora incluye:
+
+```json
+{
+  "id": 3,
+  "name": "Administrador",
+  "email": "admin@svd.test",
+  "roles": ["admin"],
+  "role_label": "Administrador",
+  "is_admin": true
+}
+```
+
+**La app móvil debe basarse en `is_admin: true`** para decidir si muestra las pantallas administrativas (más abajo). El campo `roles` queda como detalle adicional. El `role_label` es lo que mostrar en pantalla (saludo, perfil, badge).
+
+### 15.2 Credenciales de prueba
+
+| Rol | Email | Password | `is_admin` | Puede entrar a app móvil |
+|-----|-------|----------|------------|---------------------------|
+| Super Administrador | `superadmin@svd.test` | `Super/Admin?` | true | ✅ |
+| Administrador | `admin@svd.test` | `admin` | true | ✅ |
+| Vendedor | `vendedor@svd.test` | `vendedor` | false | ✅ con permisos limitados |
+
+### 15.3 Pantallas que la app móvil debe renderizar según `is_admin`
+
+```
+si is_admin === true:
+  TabBar mostrar:
+    1. Inicio (dashboard global con stats agregados)
+    2. Remisiones (TODAS, filtrables por vendedor, cliente, fecha)
+    3. Clientes (lista + crear/editar)
+    4. Productos (catálogo maestro + precios por cliente)
+    5. Vendedores (lista de usuarios con rol seller)
+    6. Reportes (export XLSX con flag all=1)
+    7. Configuración (mobile_settings, branding readonly)
+
+si is_admin === false (vendedor):
+  TabBar mostrar:
+    1. Mis Remisiones (solo las propias)
+    2. Nueva Remisión
+    3. Mis Reportes (export XLSX solo mías)
+    4. Mi Perfil
+```
+
+### 15.4 Endpoints administrativos (mismo `/api/v1`, scoping automático por token ability `*`)
+
+Los endpoints ya existen, lo único que cambia es el **scope**: cuando el token tiene ability `*` (admin o super_admin) y se pasa el flag `?all=1` donde aplica, devuelve registros de todos los vendedores. Sin `all=1`, devuelve solo los del usuario autenticado.
+
+#### Remisiones — listar todas
+
+```
+GET /api/v1/remissions?all=1&from=2026-05-01&to=2026-05-31&payment_type=credit&user_id=3
+Authorization: Bearer {admin_token}
+```
+
+Filtros disponibles:
+- `from`, `to` (YYYY-MM-DD)
+- `client_id` (int)
+- `user_id` (int) — solo si admin, filtra por vendedor
+- `payment_type` (enum)
+- `status` (enum)
+
+Respuesta paginada estándar (25/pp). Incluye `client` y `user` (vendedor).
+
+#### Remisiones — descargar PDF de cualquiera
+
+```
+GET /api/v1/remissions/{id}/pdf
+Authorization: Bearer {admin_token}
+```
+
+Admin/super_admin tienen acceso a CUALQUIER remisión. Vendedor solo a las propias (403 si no).
+
+#### Remisiones — exportar XLSX (todas o por filtros)
+
+```
+GET /api/v1/remissions/export?all=1&from=2026-05-01&to=2026-05-31
+Authorization: Bearer {admin_token}
+```
+
+Devuelve un stream binario `.xlsx`. Sin `all=1`, solo del usuario actual.
+
+#### Clientes — listar + crear + editar
+
+```
+GET    /api/v1/clients              # ya existe, paginado
+GET    /api/v1/clients/{id}/products # ya existe, lista de productos con precios resueltos
+```
+
+> **Pendiente backend** (no implementado aún, lo iremos agregando si la app móvil lo necesita):
+>
+> ```
+> POST   /api/v1/clients              # crear cliente — admin only
+> PUT    /api/v1/clients/{id}         # editar cliente — admin only
+> DELETE /api/v1/clients/{id}         # baja lógica — admin only
+> ```
+
+#### Productos — catálogo maestro
+
+```
+GET    /api/v1/products             # listado del catálogo (incluye default_price, is_active)
+```
+
+> **Pendiente backend**:
+>
+> ```
+> POST   /api/v1/products             # crear producto — admin only
+> PUT    /api/v1/products/{id}        # editar producto/precio maestro — admin only
+> PUT    /api/v1/clients/{client}/products/{product}  # override precio para cliente — admin only
+> ```
+
+#### Vendedores — lista para filtros
+
+> **Pendiente backend**:
+>
+> ```
+> GET    /api/v1/admin/users?role=seller   # lista de vendedores con stats básicos
+> ```
+
+#### Dashboard admin — stats globales
+
+> **Pendiente backend**:
+>
+> ```
+> GET    /api/v1/admin/dashboard
+> ```
+> Respuesta sugerida:
+> ```json
+> {
+>   "ventas_hoy": 1250000,
+>   "ventas_mes": 38400000,
+>   "remisiones_hoy": 17,
+>   "remisiones_mes": 412,
+>   "top_clientes": [...],
+>   "top_productos": [...],
+>   "vendedores_activos_hoy": 4
+> }
+> ```
+
+#### Mobile Settings — leer (lectura para todos los usuarios)
+
+```
+GET /api/v1/mobile-settings
+```
+
+Devuelve los valores actuales para que la app móvil los respete (versión mínima, mantenimiento, anuncio, TTL token).
+
+> Editar settings se hace desde el panel web `/admin/mobile-settings-page` — no hay endpoint API para escritura por ahora (decisión consciente: evitar que un token comprometido cambie la configuración global).
+
+### 15.5 Diferenciación visual recomendada en la app móvil
+
+| Elemento | Vendedor | Administrador |
+|----------|----------|---------------|
+| Color del header | Azul institucional | Granate / morado |
+| Badge en avatar | "Vendedor" | "Administrador" o "Super Administrador" |
+| Saludo de bienvenida | "Hola, Pedro" | "Hola, Pedro · Administrador" |
+| Acceso a "mis" vs "todas" | Solo "mis" | Toggle "Mis" / "Todas" en listas |
+
+### 15.6 Cambio de contraseña + impersonación
+
+- **Cambio de contraseña**: pendiente endpoint `PUT /api/v1/me/password` con `current_password` + `new_password`.
+- **Impersonación**: el botón "Iniciar sesión como" solo existe en el panel web `/admin/users`. No tiene sentido en móvil — un admin que quiera entrar como vendedor usa las credenciales del vendedor o la web.
+
+### 15.7 Auditoría de acciones admin
+
+Toda acción administrativa (editar cliente, cambiar precio maestro, etc.) queda en `activity_log` con `causer_id = admin_user.id`. La app móvil no necesita hacer nada especial — el log se llena automático en el backend porque los modelos usan el trait `LogsActivity`.
+
+### 15.8 Sobre el chequeo `isAdmin()` en el backend
+
+Internamente, todos los controllers usan `$user->isAdmin()` (definido en `app/Models/User.php`) que devuelve `true` para `super_admin` Y `admin`. Esto evita tener que repetir `hasAnyRole(['super_admin','admin'])` en cada chequeo y deja un solo punto de cambio si añades nuevos roles administrativos.
+
+---
+
+**Fin del contexto. Cualquier asistente o desarrollador puede leer este archivo y empezar a construir la app móvil sin más preguntas — todos los endpoints, payloads, validaciones, headers, flujos, módulos del panel admin y el modo administrador móvil están aquí.**

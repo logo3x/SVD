@@ -95,7 +95,7 @@ class RemissionController extends Controller
     public function pdf(Request $request, Remission $remission): Response
     {
         $user = $request->user();
-        if (! $user->hasRole('super_admin') && $remission->user_id !== $user->id) {
+        if (! $user->isAdmin() && $remission->user_id !== $user->id) {
             abort(403, 'No tienes acceso a esta remisión.');
         }
 
@@ -138,12 +138,12 @@ class RemissionController extends Controller
             ->when($request->input('status'), fn (Builder $q, $v) => $q->where('status', $v))
             ->orderByDesc('issued_at');
 
-        $isSuper = $request->user()->hasRole('super_admin');
-        if (! $isSuper || ! $request->boolean('all')) {
+        $isAdmin = $request->user()->isAdmin();
+        if (! $isAdmin || ! $request->boolean('all')) {
             $query->where('user_id', $request->user()->id);
         }
 
-        $scope = ($isSuper && $request->boolean('all')) ? 'todas' : 'mis';
+        $scope = ($isAdmin && $request->boolean('all')) ? 'todas' : 'mis';
         $filename = "{$scope}-remisiones-".now()->format('Ymd-His').'.xlsx';
 
         return app(RemissionsXlsxExporter::class)->streamDownload($query, $filename);
