@@ -7,26 +7,36 @@ use App\Enums\PaymentType;
 use App\Enums\RemissionStatus;
 use App\Models\Client;
 use App\Models\Product;
+use Filament\Facades\Filament;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Html;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\HtmlString;
 
 class RemissionForm
 {
     public static function configure(Schema $schema): Schema
     {
+        $isVendorPanel = Filament::getCurrentPanel()?->getId() === 'vendedor';
+
         return $schema
             ->components([
-                Section::make('Cabecera')
-                    ->columns(3)
+                // ============================================================
+                // CLIENTE Y ENTREGA — fila compacta con todos los datos clave
+                // ============================================================
+                Section::make('Cliente y entrega')
+                    ->columnSpanFull()
+                    ->columns(['default' => 1, 'md' => 4])
                     ->components([
                         Select::make('client_id')
                             ->label('Cliente')
@@ -35,6 +45,7 @@ class RemissionForm
                             ->preload()
                             ->required()
                             ->live()
+                            ->columnSpan(['default' => 1, 'md' => 2])
                             ->afterStateUpdated(function (Set $set, ?int $state) {
                                 if (! $state) {
                                     return;
@@ -46,39 +57,59 @@ class RemissionForm
                                 }
                                 $set('items', []);
                             }),
+
+                        Select::make('payment_type')
+                            ->label('Tipo de pago')
+                            ->options(PaymentType::class)
+                            ->required()
+                            ->native(false),
+
+                        Select::make('route')
+                            ->label('Ruta')
+                            ->options(DeliveryRoute::class)
+                            ->required()
+                            ->native(false),
+
+                        DateTimePicker::make('issued_at')
+                            ->label('Fecha y hora')
+                            ->default(now())
+                            ->required()
+                            ->native(false)
+                            ->seconds(false)
+                            ->columnSpan(['default' => 1, 'md' => 2]),
+
+                        // En el panel del vendedor el user_id se asigna en backend.
+                        // En el panel admin se puede elegir explícitamente.
                         Select::make('user_id')
                             ->label('Vendedor')
                             ->relationship('user', 'name')
                             ->searchable()
                             ->preload()
                             ->default(fn () => Auth::id())
-                            ->required(),
-                        DateTimePicker::make('issued_at')
-                            ->label('Fecha y hora')
-                            ->default(now())
                             ->required()
-                            ->native(false)
-                            ->seconds(false),
-                        Select::make('payment_type')
-                            ->label('Tipo de pago')
-                            ->options(PaymentType::class)
-                            ->required()
-                            ->native(false),
-                        Select::make('route')
-                            ->label('Ruta')
-                            ->options(DeliveryRoute::class)
-                            ->required()
-                            ->native(false),
+                            ->hidden($isVendorPanel),
+
                         Select::make('status')
                             ->label('Estado')
                             ->options(RemissionStatus::class)
                             ->default(RemissionStatus::Confirmed->value)
                             ->required()
-                            ->native(false),
+                            ->native(false)
+                            ->hidden($isVendorPanel),
+
+                        // Cuando el vendedor está creando, status va oculto con default.
+                        Hidden::make('status')
+                            ->default(RemissionStatus::Confirmed->value)
+                            ->visible($isVendorPanel)
+                            ->dehydrated(),
                     ]),
 
+                // ============================================================
+                // PRODUCTOS — full width con repeater compacto y TOTAL grande
+                // ============================================================
                 Section::make('Productos')
-                    ->description('Selecciona los productos del cliente. El precio se resuelve automáticamente desde el catálogo (con override si aplica).')
+                    ->description('Selecciona los productos. El precio se resuelve automáticamente desde el catálogo del cliente.')
+                    ->columnSpanFull()
                     ->components([
                         Repeater::make('items')
                             ->label('')
@@ -86,12 +117,29 @@ class RemissionForm
                             ->columns(12)
                             ->reorderable(false)
                             ->live()
-                            ->addActionLabel('Agregar producto')
+                            ->addActionLabel('+ Agregar producto')
                             ->minItems(1)
+                            ->itemLabel(function (array $state): ?string {
+                                $name = $state['product_id'] ?? null;
+                                if (! $name) {
+                                    return null;
+                                }
+                                $product = Product::find($name);
+                                $subtotal = (int) ($state['subtotal'] ?? 0);
+
+                                return $product
+                                    ? sprintf('%s · %d × $%s = $%s',
+                                        $product->name,
+                                        (int) ($state['quantity'] ?? 0),
+                                        number_format((int) ($state['unit_price_snapshot'] ?? 0), 0, ',', '.'),
+                                        number_format($subtotal, 0, ',', '.')
+                                    )
+                                    : null;
+                            })
                             ->schema([
                                 Select::make('product_id')
                                     ->label('Producto')
-                                    ->columnSpan(5)
+                                    ->columnSpan(['default' => 12, 'md' => 6])
                                     ->options(function (Get $get) {
                                         $clientId = $get('../../client_id');
                                         if (! $clientId) {
@@ -133,7 +181,7 @@ class RemissionForm
 
                                 TextInput::make('quantity')
                                     ->label('Cantidad')
-                                    ->columnSpan(2)
+                                    ->columnSpan(['default' => 4, 'md' => 2])
                                     ->numeric()
                                     ->minValue(1)
                                     ->default(1)
@@ -145,8 +193,8 @@ class RemissionForm
                                     }),
 
                                 TextInput::make('unit_price_snapshot')
-                                    ->label('Precio unitario')
-                                    ->columnSpan(2)
+                                    ->label('Precio unit.')
+                                    ->columnSpan(['default' => 4, 'md' => 2])
                                     ->numeric()
                                     ->prefix('$')
                                     ->required()
@@ -155,7 +203,7 @@ class RemissionForm
 
                                 TextInput::make('subtotal')
                                     ->label('Subtotal')
-                                    ->columnSpan(3)
+                                    ->columnSpan(['default' => 4, 'md' => 2])
                                     ->numeric()
                                     ->prefix('$')
                                     ->required()
@@ -163,43 +211,68 @@ class RemissionForm
                                     ->dehydrated(),
                             ]),
 
-                        TextInput::make('total_amount')
-                            ->label('Total')
-                            ->numeric()
-                            ->prefix('$')
-                            ->readOnly()
+                        // TOTAL grande en lugar de un TextInput pequeño.
+                        Html::make(function (Get $get): HtmlString {
+                            $total = collect($get('items') ?? [])->sum('subtotal');
+
+                            return new HtmlString(
+                                '<div style="display:flex;justify-content:space-between;align-items:baseline;padding:1rem 0 0;border-top:2px solid rgb(var(--primary-600));">'
+                                .'<span style="font-size:0.875rem;font-weight:500;color:rgb(107 114 128);text-transform:uppercase;letter-spacing:0.08em;">Total</span>'
+                                .'<span style="font-size:2rem;font-weight:700;color:rgb(var(--primary-600));font-variant-numeric:tabular-nums;">$'
+                                .number_format((int) $total, 0, ',', '.')
+                                .' COP</span>'
+                                .'</div>'
+                            );
+                        }),
+
+                        // Total real persistido (no visible).
+                        Hidden::make('total_amount')
                             ->default(0)
                             ->dehydrated()
                             ->afterStateHydrated(fn (Set $set, Get $get) => $set('total_amount', collect($get('items') ?? [])->sum('subtotal'))),
                     ]),
 
+                // ============================================================
+                // INFORMACIÓN ADICIONAL — collapsible, opcional
+                // ============================================================
                 Section::make('Información adicional')
-                    ->columns(2)
+                    ->description('Observaciones, ubicación GPS y firma del cliente (opcional).')
+                    ->icon('heroicon-o-information-circle')
+                    ->collapsible()
+                    ->collapsed()
+                    ->columnSpanFull()
+                    ->columns(['default' => 1, 'md' => 4])
                     ->components([
                         Textarea::make('observations')
                             ->label('Observaciones')
                             ->rows(2)
                             ->columnSpanFull(),
+
                         TextInput::make('gps_lat')
                             ->label('GPS Latitud')
                             ->numeric()
                             ->step('0.00000001')
                             ->minValue(-90)
                             ->maxValue(90)
-                            ->placeholder('7.06530000'),
+                            ->placeholder('7.06530000')
+                            ->columnSpan(['default' => 1, 'md' => 2]),
+
                         TextInput::make('gps_lng')
                             ->label('GPS Longitud')
                             ->numeric()
                             ->step('0.00000001')
                             ->minValue(-180)
                             ->maxValue(180)
-                            ->placeholder('-73.85470000'),
+                            ->placeholder('-73.85470000')
+                            ->columnSpan(['default' => 1, 'md' => 2]),
+
                         SpatieMediaLibraryFileUpload::make('signature')
                             ->label('Firma digital del cliente')
                             ->collection('signature')
                             ->disk('local')
                             ->image()
-                            ->visibility('private'),
+                            ->visibility('private')
+                            ->columnSpanFull(),
                     ]),
             ]);
     }
