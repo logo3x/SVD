@@ -32,6 +32,8 @@ Route::middleware(EnforceMobileSettings::class)->group(function (): void {
         Route::get('clients/{client}/products', [ProductController::class, 'byClient']);
 
         Route::get('remissions', [RemissionController::class, 'index']);
+        // Export XLSX de remisiones (scoped al vendedor del token).
+        Route::get('remissions/export', [RemissionController::class, 'export']);
         // Crear remisiones tiene un throttle más estricto que el resto.
         Route::middleware('throttle:api-write')
             ->post('remissions', [RemissionController::class, 'store']);

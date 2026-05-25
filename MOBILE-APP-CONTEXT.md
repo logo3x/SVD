@@ -252,6 +252,33 @@ Listado paginado, ordenado por `issued_at DESC`. Filtros opcionales:
 - `from`, `to`: fecha (yyyy-mm-dd o ISO).
 - `mine=1`: sólo del vendedor logueado.
 
+#### `GET /api/v1/remissions/export` (autenticado)
+Descarga XLSX de las remisiones del vendedor logueado.
+
+Filtros opcionales (mismos que `GET /remissions`):
+- `from`, `to`: rango de fechas.
+- `payment_type`: `cash`, `cash_for_billing`, `credit`, `gift`, `other`.
+- `status`: `draft`, `confirmed`, `cancelled`.
+- `all=1`: sólo para `super_admin` — exporta de todos los vendedores.
+
+Respuesta:
+```
+HTTP/1.1 200 OK
+Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+Content-Disposition: attachment; filename="mis-remisiones-20260525-160000.xlsx"
+```
+
+Throttle: 60/min (lectura). El archivo se streamea con chunks de 200 filas → soporta datasets grandes sin OOM.
+
+Ejemplo:
+```sh
+curl -OJ -H 'Authorization: Bearer {token}' -H 'Accept: application/json' \
+  -H 'X-App-Version: 1.0.0' \
+  'https://svd.example.com/api/v1/remissions/export?from=2026-05-01&to=2026-05-31'
+```
+
+Una fila por línea de producto (SKU, cantidad, precio, subtotal) → permite tablas dinámicas y rollups por cliente/ruta en Excel.
+
 ---
 
 ## 5. Headers globales y enforcement de versión

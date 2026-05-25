@@ -10,11 +10,13 @@ use App\Http\Resources\Api\V1\RemissionResource;
 use App\Mail\RemisionCreada;
 use App\Models\Remission;
 use App\Services\RemissionEmailRouter;
+use App\Services\RemissionsXlsxExporter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class RemissionController extends Controller
 {
@@ -89,5 +91,35 @@ class RemissionController extends Controller
             ->toMediaCollection('signature', 'local');
 
         return RemissionResource::make($remission->load(['client', 'user', 'products']));
+    }
+
+    /**
+     * Exporta las remisiones del vendedor logueado como XLSX.
+     *
+     * Filtros opcionales (mismos que GET /remissions):
+     *   ?from=2026-05-01  &to=2026-05-31  &payment_type=credit  &status=confirmed  &all=1
+     *
+     * Por defecto el export está scoped al token (sólo las del vendedor).
+     * Pasar `all=1` requiere que el usuario sea super_admin — útil para
+     * un admin que llame el endpoint desde una herramienta interna.
+     */
+    public function export(Request $request): StreamedResponse
+    {
+        $query = Remission::query()
+            ->when($request->date('from'), fn (Builder $q, $d) => $q->whereDate('issued_at', '>=', $d))
+            ->when($request->date('to'), fn (Builder $q, $d) => $q->whereDate('issued_at', '<=', $d))
+            ->when($request->input('payment_type'), fn (Builder $q, $v) => $q->where('payment_type', $v))
+            ->when($request->input('status'), fn (Builder $q, $v) => $q->where('status', $v))
+            ->orderByDesc('issued_at');
+
+        $isSuper = $request->user()->hasRole('super_admin');
+        if (! $isSuper || ! $request->boolean('all')) {
+            $query->where('user_id', $request->user()->id);
+        }
+
+        $scope = ($isSuper && $request->boolean('all')) ? 'todas' : 'mis';
+        $filename = "{$scope}-remisiones-".now()->format('Ymd-His').'.xlsx';
+
+        return app(RemissionsXlsxExporter::class)->streamDownload($query, $filename);
     }
 }

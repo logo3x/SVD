@@ -329,6 +329,7 @@
     <tr><td>POST</td><td>/api/v1/remissions</td><td>30/min</td><td>Crear remisión completa</td></tr>
     <tr><td>POST</td><td>/api/v1/remissions/{id}/signature</td><td>30/min</td><td>Subir firma (multipart, max 2MB)</td></tr>
     <tr><td>GET</td><td>/api/v1/remissions?mine=1</td><td>60/min</td><td>Historial del vendedor</td></tr>
+    <tr><td>GET</td><td>/api/v1/remissions/export</td><td>60/min</td><td>Descarga XLSX scoped al vendedor (filtros: from/to/payment_type/status)</td></tr>
 </table>
 
 <h3>Header obligatorio en cada request</h3>

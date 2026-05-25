@@ -49,6 +49,7 @@ class DatabaseSeeder extends Seeder
             'ViewAny:Remission', 'View:Remission', 'Create:Remission',
             'ViewAny:Client', 'View:Client',
             'ViewAny:Product', 'View:Product',
+            'View:ReportesVendedor', 'View:MisVentasOverview',
         ];
         $sellerPerms = Permission::whereIn('name', $sellerPermNames)->get();
         if ($sellerPerms->isNotEmpty()) {
