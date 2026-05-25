@@ -38,6 +38,8 @@ Route::middleware(EnforceMobileSettings::class)->group(function (): void {
         Route::middleware('throttle:api-write')
             ->post('remissions', [RemissionController::class, 'store']);
         Route::get('remissions/{remission}', [RemissionController::class, 'show']);
+        // Descarga PDF del comprobante (binario application/pdf).
+        Route::get('remissions/{remission}/pdf', [RemissionController::class, 'pdf']);
         Route::middleware('throttle:api-write')
             ->post('remissions/{remission}/signature', [RemissionController::class, 'signature']);
     });

@@ -247,6 +247,28 @@ Respuesta 200:
 #### `GET /api/v1/remissions/{id}` (autenticado)
 Detalle de una remisión.
 
+#### `GET /api/v1/remissions/{id}/pdf` (autenticado)
+Descarga el **comprobante PDF** de la remisión, igual al que se genera desde
+el panel web (`/admin/remissions/{id}` → Imprimir PDF). Incluye el logo y
+nombre de la empresa configurados en `/admin/settings`. Si no hay logo
+cargado, se usa un placeholder genérico (caja con la inicial del nombre).
+
+Respuesta:
+```
+HTTP/1.1 200 OK
+Content-Type: application/pdf
+Content-Disposition: attachment; filename="remision-000124.pdf"
+```
+
+Scope: el vendedor sólo puede descargar **sus** remisiones; `super_admin`
+puede descargar cualquiera. 403 en caso contrario.
+
+Ejemplo:
+```sh
+curl -OJ -H 'Authorization: Bearer {token}' -H 'X-App-Version: 1.0.0' \
+  'https://svd.example.com/api/v1/remissions/124/pdf'
+```
+
 #### `GET /api/v1/remissions?from=2026-05-01&to=2026-05-20&mine=1&client_id=5` (autenticado)
 Listado paginado, ordenado por `issued_at DESC`. Filtros opcionales:
 - `from`, `to`: fecha (yyyy-mm-dd o ISO).

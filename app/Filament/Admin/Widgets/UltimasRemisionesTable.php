@@ -27,6 +27,8 @@ class UltimasRemisionesTable extends TableWidget
             ->query(fn (): Builder => Remission::query()->with(['client', 'user'])->latest('issued_at')->limit(10))
             ->defaultPaginationPageOption(10)
             ->paginated(false)
+            // Click en cualquier fila → vista de la remisión.
+            ->recordUrl(fn (Remission $record): string => RemissionResource::getUrl('view', ['record' => $record]))
             ->columns([
                 TextColumn::make('id')->label('#')->prefix('#')->weight('bold'),
                 TextColumn::make('issued_at')->label('Fecha')->dateTime('d/m/Y H:i'),

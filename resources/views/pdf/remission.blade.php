@@ -28,18 +28,33 @@
 </head>
 <body>
 
-<div class="header">
-    <div class="left">
-        <h1>{{ $branding->company_name }}</h1>
-        <div>{{ $branding->company_tagline }}</div>
-        <div>{{ $branding->address }} · {{ $branding->city }}</div>
-    </div>
-    <div class="right">
-        <div style="font-size:14px;font-weight:bold;">REMISIÓN #{{ $remission->id }}</div>
-        <div>{{ $remission->issued_at?->format('d/m/Y H:i') }}</div>
-        <div><span class="badge">{{ $remission->payment_type?->getLabel() }}</span></div>
-    </div>
-</div>
+@php
+    $initial = strtoupper(substr(trim($branding->company_name ?? 'S'), 0, 1));
+@endphp
+
+<table style="width:100%;border-collapse:collapse;margin-bottom:14px;">
+    <tr>
+        <td style="vertical-align:top;width:80px;padding-right:14px;">
+            @if (! empty($logoPath))
+                <img src="{{ $logoPath }}" alt="Logo" style="max-width:70px;max-height:70px;">
+            @else
+                <table style="width:64px;height:64px;border:2px solid #0a2540;background:#f5f7fa;border-collapse:collapse;">
+                    <tr><td style="text-align:center;vertical-align:middle;font-family:DejaVu Sans,sans-serif;font-weight:bold;font-size:30px;color:#0a2540;">{{ $initial }}</td></tr>
+                </table>
+            @endif
+        </td>
+        <td style="vertical-align:top;">
+            <h1 style="margin:0;">{{ $branding->company_name }}</h1>
+            <div style="color:#5b7088;font-size:10.5px;margin-top:2px;">{{ $branding->company_tagline }}</div>
+            <div style="color:#5b7088;font-size:10px;margin-top:2px;">{{ $branding->address }} · {{ $branding->city }}</div>
+        </td>
+        <td style="vertical-align:top;text-align:right;white-space:nowrap;">
+            <div style="font-size:14px;font-weight:bold;">REMISIÓN #{{ $remission->id }}</div>
+            <div>{{ $remission->issued_at?->format('d/m/Y H:i') }}</div>
+            <div style="margin-top:4px;"><span class="badge">{{ $remission->payment_type?->getLabel() }}</span></div>
+        </td>
+    </tr>
+</table>
 
 <h2>Cliente</h2>
 <div class="grid">

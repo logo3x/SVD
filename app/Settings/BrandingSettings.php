@@ -30,6 +30,12 @@ class BrandingSettings extends Settings
 
     public string $email_credit;
 
+    /**
+     * Path relativo al logo en el disco `public`. Ej: `branding/logo.png`.
+     * Si está vacío, el PDF y la landing usan un placeholder genérico.
+     */
+    public ?string $logo_path = null;
+
     public static function group(): string
     {
         return 'branding';

@@ -5,6 +5,7 @@ namespace App\Filament\Admin\Pages;
 use App\Settings\BrandingSettings;
 use BackedEnum;
 use Filament\Actions\Action;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
@@ -48,6 +49,16 @@ class Settings extends Page implements HasForms
                         TextInput::make('company_tagline')->label('Eslogan'),
                         TextInput::make('city')->label('Ciudad'),
                         TextInput::make('address')->label('Dirección'),
+                        FileUpload::make('logo_path')
+                            ->label('Logo de la empresa')
+                            ->image()
+                            ->imageEditor()
+                            ->disk('public')
+                            ->directory('branding')
+                            ->visibility('public')
+                            ->maxSize(2048)
+                            ->helperText('Aparece en el PDF de las remisiones y en otros documentos. Si no se sube, se usa un logo genérico.')
+                            ->columnSpanFull(),
                     ]),
 
                 Section::make('Contacto')
@@ -75,7 +86,15 @@ class Settings extends Page implements HasForms
         $data = $this->form->getState();
 
         foreach ($data as $key => $value) {
-            $settings->{$key} = $value;
+            if ($key === 'logo_path') {
+                // FileUpload puede devolver string, array (multiple) o null.
+                $settings->logo_path = is_string($value) && $value !== '' ? $value : null;
+
+                continue;
+            }
+            if (property_exists($settings, $key)) {
+                $settings->{$key} = $value;
+            }
         }
 
         $settings->save();

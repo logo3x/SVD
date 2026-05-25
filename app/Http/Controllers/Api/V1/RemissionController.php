@@ -10,10 +10,12 @@ use App\Http\Resources\Api\V1\RemissionResource;
 use App\Mail\RemisionCreada;
 use App\Models\Remission;
 use App\Services\RemissionEmailRouter;
+use App\Services\RemissionInvoicePdf;
 use App\Services\RemissionsXlsxExporter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -83,6 +85,28 @@ class RemissionController extends Controller
     public function show(Remission $remission): RemissionResource
     {
         return RemissionResource::make($remission->load(['client', 'user', 'products']));
+    }
+
+    /**
+     * Descarga el PDF del comprobante de una remisión.
+     * Mismo formato que se ve en /admin/remissions/{id} → Imprimir PDF.
+     * Scope: super_admin = todas; resto = sólo las propias.
+     */
+    public function pdf(Request $request, Remission $remission): Response
+    {
+        $user = $request->user();
+        if (! $user->hasRole('super_admin') && $remission->user_id !== $user->id) {
+            abort(403, 'No tienes acceso a esta remisión.');
+        }
+
+        $pdf = app(RemissionInvoicePdf::class);
+        $binary = $pdf->asString($remission);
+
+        return response($binary, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$pdf->filename($remission).'"',
+            'Content-Length' => (string) strlen($binary),
+        ]);
     }
 
     public function signature(SignatureRequest $request, Remission $remission): RemissionResource
