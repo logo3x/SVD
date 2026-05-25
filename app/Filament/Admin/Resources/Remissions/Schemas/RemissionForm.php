@@ -17,8 +17,11 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Html;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
+use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\HtmlString;
@@ -266,13 +269,29 @@ class RemissionForm
                             ->placeholder('-73.85470000')
                             ->columnSpan(['default' => 1, 'md' => 2]),
 
-                        SpatieMediaLibraryFileUpload::make('signature')
-                            ->label('Firma digital del cliente')
-                            ->collection('signature')
-                            ->disk('local')
-                            ->image()
-                            ->visibility('private')
-                            ->columnSpanFull(),
+                        Tabs::make('Firma del cliente')
+                            ->columnSpanFull()
+                            ->tabs([
+                                Tab::make('Firmar en pantalla')
+                                    ->icon('heroicon-o-pencil-square')
+                                    ->schema([
+                                        Hidden::make('signature_data_url')
+                                            ->dehydrated(),
+                                        View::make('filament.components.signature-pad')
+                                            ->statePath('signature_data_url'),
+                                    ]),
+                                Tab::make('Subir imagen')
+                                    ->icon('heroicon-o-arrow-up-tray')
+                                    ->schema([
+                                        SpatieMediaLibraryFileUpload::make('signature')
+                                            ->label('Firma digital del cliente')
+                                            ->collection('signature')
+                                            ->disk('local')
+                                            ->image()
+                                            ->visibility('private')
+                                            ->columnSpanFull(),
+                                    ]),
+                            ]),
                     ]),
             ]);
     }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Vendedor\Resources\Remissions\Pages;
 
 use App\Enums\RemissionStatus;
+use App\Filament\Concerns\HandlesSignatureDataUrl;
 use App\Filament\Vendedor\Resources\Remissions\RemissionResource;
 use App\Mail\RemisionCreada;
 use App\Services\RemissionEmailRouter;
@@ -16,7 +17,12 @@ use Illuminate\Support\Facades\Mail;
 
 class CreateRemission extends CreateRecord
 {
+    use HandlesSignatureDataUrl;
+
     protected static string $resource = RemissionResource::class;
+
+    /** Buffer del data URI hasta el afterCreate. */
+    protected ?string $signatureDataUrl = null;
 
     public function getTitle(): string
     {
@@ -38,11 +44,16 @@ class CreateRemission extends CreateRecord
         $data['user_id'] = Auth::id();
         $data['total_amount'] = collect($data['items'] ?? [])->sum('subtotal');
 
+        $this->signatureDataUrl = $data['signature_data_url'] ?? null;
+        unset($data['signature_data_url']);
+
         return $data;
     }
 
     protected function afterCreate(): void
     {
+        $this->persistSignatureDataUrl($this->record, $this->signatureDataUrl);
+
         if ($this->record->status !== RemissionStatus::Confirmed) {
             return;
         }
