@@ -6,6 +6,7 @@ namespace App\Filament\Vendedor\Pages;
 
 use App\Enums\PaymentType;
 use App\Enums\RemissionStatus;
+use App\Models\Client;
 use App\Models\Remission;
 use App\Services\RemissionsXlsxExporter;
 use BackedEnum;
@@ -74,6 +75,19 @@ class ReportesVendedor extends Page implements HasForms
                             ->native(false)
                             ->live(onBlur: true)
                             ->afterStateUpdated(fn () => $this->refreshPreview()),
+                        Select::make('client_id')
+                            ->label('Negocio / Cliente')
+                            ->placeholder('Todos los negocios')
+                            ->searchable()
+                            ->preload()
+                            // Sólo clientes con los que el vendedor ha trabajado.
+                            ->options(fn () => Client::query()
+                                ->whereHas('remissions', fn ($q) => $q->where('user_id', Auth::id()))
+                                ->orderBy('name')
+                                ->pluck('name', 'id'))
+                            ->columnSpan(['default' => 1, 'md' => 2])
+                            ->live()
+                            ->afterStateUpdated(fn () => $this->refreshPreview()),
                         Select::make('payment_type')
                             ->label('Tipo de pago')
                             ->options(collect(PaymentType::cases())->mapWithKeys(fn ($c) => [$c->value => $c->getLabel()]))
@@ -125,6 +139,7 @@ class ReportesVendedor extends Page implements HasForms
             ->where('user_id', Auth::id())
             ->when($data['from'] ?? null, fn ($q, $d) => $q->whereDate('issued_at', '>=', $d))
             ->when($data['to'] ?? null, fn ($q, $d) => $q->whereDate('issued_at', '<=', $d))
+            ->when($data['client_id'] ?? null, fn ($q, $v) => $q->where('client_id', $v))
             ->when($data['payment_type'] ?? null, fn ($q, $v) => $q->where('payment_type', $v))
             ->when($data['status'] ?? null, fn ($q, $v) => $q->where('status', $v))
             ->orderBy('issued_at', 'desc');

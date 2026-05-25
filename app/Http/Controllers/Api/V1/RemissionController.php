@@ -26,6 +26,7 @@ class RemissionController extends Controller
             ->with(['client:id,name,nit', 'user:id,name'])
             ->when($request->date('from'), fn (Builder $q, $d) => $q->whereDate('issued_at', '>=', $d))
             ->when($request->date('to'), fn (Builder $q, $d) => $q->whereDate('issued_at', '<=', $d))
+            ->when($request->integer('client_id'), fn (Builder $q, $v) => $q->where('client_id', $v))
             ->when($request->boolean('mine'), fn (Builder $q) => $q->where('user_id', $request->user()->id))
             ->orderByDesc('issued_at')
             ->paginate(25);
@@ -108,6 +109,7 @@ class RemissionController extends Controller
         $query = Remission::query()
             ->when($request->date('from'), fn (Builder $q, $d) => $q->whereDate('issued_at', '>=', $d))
             ->when($request->date('to'), fn (Builder $q, $d) => $q->whereDate('issued_at', '<=', $d))
+            ->when($request->integer('client_id'), fn (Builder $q, $v) => $q->where('client_id', $v))
             ->when($request->input('payment_type'), fn (Builder $q, $v) => $q->where('payment_type', $v))
             ->when($request->input('status'), fn (Builder $q, $v) => $q->where('status', $v))
             ->orderByDesc('issued_at');

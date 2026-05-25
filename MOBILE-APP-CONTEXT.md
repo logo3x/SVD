@@ -247,9 +247,10 @@ Respuesta 200:
 #### `GET /api/v1/remissions/{id}` (autenticado)
 Detalle de una remisión.
 
-#### `GET /api/v1/remissions?from=2026-05-01&to=2026-05-20&mine=1` (autenticado)
+#### `GET /api/v1/remissions?from=2026-05-01&to=2026-05-20&mine=1&client_id=5` (autenticado)
 Listado paginado, ordenado por `issued_at DESC`. Filtros opcionales:
 - `from`, `to`: fecha (yyyy-mm-dd o ISO).
+- `client_id`: filtra por un negocio/cliente específico.
 - `mine=1`: sólo del vendedor logueado.
 
 #### `GET /api/v1/remissions/export` (autenticado)
@@ -257,6 +258,7 @@ Descarga XLSX de las remisiones del vendedor logueado.
 
 Filtros opcionales (mismos que `GET /remissions`):
 - `from`, `to`: rango de fechas.
+- `client_id`: filtra por un negocio/cliente específico.
 - `payment_type`: `cash`, `cash_for_billing`, `credit`, `gift`, `other`.
 - `status`: `draft`, `confirmed`, `cancelled`.
 - `all=1`: sólo para `super_admin` — exporta de todos los vendedores.
