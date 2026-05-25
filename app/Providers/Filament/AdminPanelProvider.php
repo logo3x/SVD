@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Admin\Widgets\AdminWelcome;
 use App\Filament\Admin\Widgets\UltimasRemisionesTable;
 use App\Filament\Admin\Widgets\VentasMesChart;
 use App\Filament\Admin\Widgets\VentasOverview;
@@ -15,7 +16,6 @@ use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use Filament\Widgets\AccountWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -45,7 +45,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Admin/Widgets'), for: 'App\Filament\Admin\Widgets')
             ->widgets([
-                AccountWidget::class,
+                AdminWelcome::class,
                 VentasOverview::class,
                 VentasMesChart::class,
                 UltimasRemisionesTable::class,
