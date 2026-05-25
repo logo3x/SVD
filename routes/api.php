@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\V1\Admin\MobileDeviceController;
+use App\Http\Controllers\Api\V1\Admin\MobileSettingsController;
+use App\Http\Controllers\Api\V1\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CatalogController;
 use App\Http\Controllers\Api\V1\ClientController;
@@ -42,5 +45,21 @@ Route::middleware(EnforceMobileSettings::class)->group(function (): void {
         Route::get('remissions/{remission}/pdf', [RemissionController::class, 'pdf']);
         Route::middleware('throttle:api-write')
             ->post('remissions/{remission}/signature', [RemissionController::class, 'signature']);
+
+        // Endpoints administrativos — requieren rol admin o super_admin.
+        // 403 con {"message":"Acceso restringido a administradores"} si no aplica.
+        Route::middleware('admin')->prefix('admin')->name('admin.')->group(function (): void {
+            // P1.A — Gestión de dispositivos móviles (PersonalAccessTokens)
+            Route::get('mobile-devices', [MobileDeviceController::class, 'index']);
+            Route::post('mobile-devices/revoke-all', [MobileDeviceController::class, 'revokeAll']);
+            Route::delete('mobile-devices/{mobileDevice}', [MobileDeviceController::class, 'destroy']);
+
+            // P1.B — Mobile settings
+            Route::get('mobile-settings', [MobileSettingsController::class, 'show']);
+            Route::put('mobile-settings', [MobileSettingsController::class, 'update']);
+
+            // P2 — Vendedores con stats
+            Route::get('users', [AdminUserController::class, 'index']);
+        });
     });
 });

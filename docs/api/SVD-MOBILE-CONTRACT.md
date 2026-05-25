@@ -5,8 +5,8 @@
 
 | Campo | Valor |
 |-------|-------|
-| **Versión** | `b21d4769af8b` |
-| **Generado** | `2026-05-25T20:35:35+00:00` |
+| **Versión** | `ec882d1f078c` |
+| **Generado** | `2026-05-25T20:47:18+00:00` |
 | **Base URL (prod)** | `https://svd.example.com/api/v1` |
 
 ---
@@ -72,10 +72,16 @@ El header `X-App-Version` se compara contra `min_app_version` y `force_update_ve
 
 ## 3 · Endpoints
 
-Total: **14 rutas** bajo `/api/v1`.
+Total: **20 rutas** bajo `/api/v1`.
 
 | Método | URI | Auth | Throttle |
 |--------|-----|------|----------|
+| `GET` | `/api/v1/admin/mobile-devices` | 🔒 sanctum | api |
+| `POST` | `/api/v1/admin/mobile-devices/revoke-all` | 🔒 sanctum | api |
+| `DELETE` | `/api/v1/admin/mobile-devices/{mobileDevice}` | 🔒 sanctum | api |
+| `GET` | `/api/v1/admin/mobile-settings` | 🔒 sanctum | api |
+| `PUT` | `/api/v1/admin/mobile-settings` | 🔒 sanctum | api |
+| `GET` | `/api/v1/admin/users` | 🔒 sanctum | api |
 | `GET` | `/api/v1/clients` | 🔒 sanctum | api |
 | `GET` | `/api/v1/clients/{client}` | 🔒 sanctum | api |
 | `GET` | `/api/v1/clients/{client}/products` | 🔒 sanctum | api |
@@ -216,4 +222,4 @@ cp "$USERPROFILE/Desktop/SVD-MOBILE-CONTRACT.md" docs/SVD-CONTRACT.md
 
 **Repo backend:** `https://github.com/logo3x/SVD`
 **Comando para regenerar:** `php artisan svd:contract --desktop`
-**Versión actual:** `b21d4769af8b` — generado `2026-05-25T20:35:35+00:00`
+**Versión actual:** `ec882d1f078c` — generado `2026-05-25T20:47:18+00:00`

@@ -742,4 +742,201 @@ Internamente, todos los controllers usan `$user->isAdmin()` (definido en `app/Mo
 
 ---
 
-**Fin del contexto. Cualquier asistente o desarrollador puede leer este archivo y empezar a construir la app móvil sin más preguntas — todos los endpoints, payloads, validaciones, headers, flujos, módulos del panel admin y el modo administrador móvil están aquí.**
+## 16. API Administrativa (admin + super_admin)
+
+> Sección añadida el 25 de mayo de 2026 — implementa las prioridades 1+2 solicitadas por la app móvil.
+> Contrato: versión actualizada por `php artisan svd:contract --desktop`.
+
+### 16.1 Autorización
+
+Endpoints bajo `/api/v1/admin/*`:
+
+- Requieren `Authorization: Bearer {token}` con un token cuyo usuario tenga rol `admin` o `super_admin`.
+- El backend revisa con el middleware alias `admin` (ver `app/Http/Middleware/EnsureAdmin.php`) que llama a `$user->isAdmin()`.
+- Si el usuario no es admin → **HTTP 403** con:
+  ```json
+  { "message": "Acceso restringido a administradores" }
+  ```
+- Si el usuario no está autenticado → **HTTP 401** con `{"message":"Unauthenticated."}`.
+
+> ⚠️ **Importante**: en la versión anterior solo `super_admin` recibía ability `*`. **Ahora `admin` también la recibe** (commit `e520b84`). La app móvil debe basar la lógica de UI en `is_admin: true` (vienen del payload `/me`), no en el slug `super_admin` específicamente.
+
+### 16.2 Gestión de dispositivos móviles
+
+#### `GET /api/v1/admin/mobile-devices`
+
+Lista paginada de `PersonalAccessToken` (alias `MobileDevice`) que pertenecen a usuarios.
+
+Query params opcionales:
+- `user_id` (int) — filtra por dueño del token
+- `search` (string) — busca por `device_name` (LIKE)
+- `page` (int) — paginación estándar Laravel (25/pp)
+
+Respuesta:
+```json
+{
+  "data": [
+    {
+      "id": 21,
+      "device_name": "iPhone 15 Luis",
+      "abilities": ["*"],
+      "last_used_at": "2026-05-25T20:45:24+00:00",
+      "expires_at": null,
+      "created_at": "2026-05-25T20:45:16+00:00",
+      "user": { "id": 13, "name": "Administrador", "email": "admin@svd.test" }
+    }
+  ],
+  "links": { "...": "..." },
+  "meta": { "current_page": 1, "last_page": 1, "per_page": 25, "total": 1 }
+}
+```
+
+#### `DELETE /api/v1/admin/mobile-devices/{id}`
+
+Revoca un token específico. **204 No Content** si tuvo éxito. Después de esta llamada, cualquier request con ese token devuelve 401.
+
+#### `POST /api/v1/admin/mobile-devices/revoke-all`
+
+**Kill switch.** Revoca TODOS los `PersonalAccessToken` que pertenezcan a usuarios. Acción crítica.
+
+Body **obligatorio**:
+```json
+{ "confirm": true }
+```
+
+Si `confirm !== true` → 422 (validation rule `accepted`).
+
+Respuesta 200:
+```json
+{ "message": "Todos los tokens fueron revocados.", "revoked_count": 12 }
+```
+
+**Aviso:** después de esta acción, **todos los usuarios (incluido el admin que la ejecutó) quedan deslogueados**. La app móvil debe redirigir a Login inmediatamente al recibir 401 en la siguiente request.
+
+### 16.3 Mobile Settings
+
+#### `GET /api/v1/admin/mobile-settings`
+
+Devuelve la configuración runtime de la app móvil:
+
+```json
+{
+  "data": {
+    "min_app_version": "1.0.0",
+    "force_update_version": "0.0.0",
+    "maintenance_mode": false,
+    "maintenance_message": "Plataforma en mantenimiento. Vuelve en unos minutos.",
+    "announcement_enabled": false,
+    "announcement_message": "",
+    "default_token_ttl_days": 0,
+    "api_base_url": "https://svd.example.com/api/v1"
+  }
+}
+```
+
+#### `PUT /api/v1/admin/mobile-settings`
+
+Acepta cualquier subset de los mismos campos (todos `sometimes`). Validaciones:
+
+| Campo | Regla |
+|-------|-------|
+| `min_app_version` | string max 20 |
+| `force_update_version` | string max 20 |
+| `maintenance_mode` | boolean |
+| `maintenance_message` | string max 500 |
+| `announcement_enabled` | boolean |
+| `announcement_message` | string max 500 |
+| `default_token_ttl_days` | integer 0–3650 |
+| `api_base_url` | URL válida max 255 |
+
+Respuesta 200: mismo formato que `show`.
+
+> Nota: el campo se llama `announcement_message` (no `announcement_text` como aparecía en el ticket inicial — alineado con `app/Settings/MobileSettings.php`).
+
+### 16.4 Vendedores con stats
+
+#### `GET /api/v1/admin/users`
+
+Query params:
+- `role` (string opcional) — filtra por rol Spatie (`seller`, `admin`, `super_admin`)
+- `page` (int)
+
+Respuesta:
+```json
+{
+  "data": [
+    {
+      "id": 6,
+      "name": "Blanca Kovacek",
+      "email": "mmurazik@example.org",
+      "roles": ["seller"],
+      "role_label": "Vendedor",
+      "is_admin": false,
+      "remissions_this_month": 7,
+      "remissions_total": 8,
+      "last_login_at": null,
+      "created_at": "2026-05-23T02:49:24+00:00"
+    }
+  ],
+  "meta": { "current_page": 1, "last_page": 1, "per_page": 50, "total": 9 }
+}
+```
+
+`last_login_at` se infiere del `last_used_at` del token más reciente del usuario (puede ser `null` si nunca se ha conectado por API).
+
+### 16.5 Listados existentes con flag `all`
+
+Los siguientes endpoints **ya existen** y aceptan `?all=1` para administradores:
+
+#### `GET /api/v1/remissions?all=1[&from=&to=&client_id=&user_id=&payment_type=&status=]`
+
+- Sin `all=1` → solo remisiones del usuario autenticado (comportamiento vendedor).
+- Con `all=1` Y usuario es admin/super_admin → todas las remisiones de todos los vendedores.
+- Con `all=1` Y usuario NO es admin → se ignora silenciosamente, devuelve solo las propias (no es 403).
+- Las relaciones `client` y `user` (vendedor) vienen pobladas en `included`.
+
+#### `GET /api/v1/remissions/export?all=1[&from=&to=&client_id=&payment_type=&status=]`
+
+Mismo comportamiento que `index` pero stream XLSX. Filename:
+- Con `all=1` admin: `todas-remisiones-{YmdHis}.xlsx`
+- Sin `all=1`: `mis-remisiones-{YmdHis}.xlsx`
+
+### 16.6 Resumen rápido — todos los endpoints admin
+
+| Método | Path | Auth | Implementado |
+|--------|------|------|--------------|
+| GET | `/api/v1/admin/mobile-devices` | admin | ✅ |
+| DELETE | `/api/v1/admin/mobile-devices/{id}` | admin | ✅ |
+| POST | `/api/v1/admin/mobile-devices/revoke-all` | admin | ✅ |
+| GET | `/api/v1/admin/mobile-settings` | admin | ✅ |
+| PUT | `/api/v1/admin/mobile-settings` | admin | ✅ |
+| GET | `/api/v1/admin/users[?role=]` | admin | ✅ |
+| GET | `/api/v1/remissions?all=1` | sanctum | ✅ (ya existía) |
+| GET | `/api/v1/remissions/export?all=1` | sanctum | ✅ (ya existía) |
+
+### 16.7 Pendiente — Prioridad 3 (CRUD catálogo)
+
+No bloquean el drawer admin de la app móvil. Se implementarán en la próxima iteración:
+
+| Método | Path |
+|--------|------|
+| POST | `/api/v1/admin/clients` |
+| PUT | `/api/v1/admin/clients/{id}` |
+| DELETE | `/api/v1/admin/clients/{id}` |
+| POST | `/api/v1/admin/products` |
+| PUT | `/api/v1/admin/products/{id}` |
+| DELETE | `/api/v1/admin/products/{id}` |
+| PATCH | `/api/v1/admin/clients/{c}/products/{p}` (override precio en pivot) |
+
+### 16.8 Pendiente — Prioridad 4 (configuración global + gestión usuarios)
+
+| Método | Path |
+|--------|------|
+| GET | `/api/v1/admin/branding-settings` |
+| PUT | `/api/v1/admin/branding-settings` |
+| POST | `/api/v1/admin/users` (crear vendedor/admin) |
+| DELETE | `/api/v1/admin/users/{id}` (desactivar + revocar tokens) |
+
+---
+
+**Fin del contexto. Cualquier asistente o desarrollador puede leer este archivo y empezar a construir la app móvil sin más preguntas — todos los endpoints, payloads, validaciones, headers, flujos, módulos del panel admin, modo administrador móvil y API administrativa están aquí.**
