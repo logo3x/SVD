@@ -3,15 +3,14 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Auth\Login as SvdLogin;
+use App\Filament\Vendedor\Resources\Remissions\RemissionResource;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use Filament\Widgets\AccountWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -31,18 +30,14 @@ class VendedorPanelProvider extends PanelProvider
             ->login(SvdLogin::class)
             ->passwordReset()
             ->profile()
+            // Al iniciar sesión se va directo al listado "Mis Remisiones".
+            ->homeUrl(fn () => RemissionResource::getUrl('index'))
             ->colors([
                 'primary' => Color::Emerald,
             ])
             ->discoverResources(in: app_path('Filament/Vendedor/Resources'), for: 'App\Filament\Vendedor\Resources')
             ->discoverPages(in: app_path('Filament/Vendedor/Pages'), for: 'App\Filament\Vendedor\Pages')
-            ->pages([
-                Dashboard::class,
-            ])
             ->discoverWidgets(in: app_path('Filament/Vendedor/Widgets'), for: 'App\Filament\Vendedor\Widgets')
-            ->widgets([
-                AccountWidget::class,
-            ])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

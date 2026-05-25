@@ -15,6 +15,11 @@ class ViewRemission extends ViewRecord
 {
     protected static string $resource = RemissionResource::class;
 
+    public function getTitle(): string
+    {
+        return 'Remisión #'.$this->record->id;
+    }
+
     protected function getHeaderActions(): array
     {
         return [

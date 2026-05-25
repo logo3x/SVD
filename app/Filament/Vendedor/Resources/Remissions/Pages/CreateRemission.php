@@ -8,6 +8,7 @@ use App\Enums\RemissionStatus;
 use App\Filament\Vendedor\Resources\Remissions\RemissionResource;
 use App\Mail\RemisionCreada;
 use App\Services\RemissionEmailRouter;
+use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\Auth;
@@ -16,6 +17,21 @@ use Illuminate\Support\Facades\Mail;
 class CreateRemission extends CreateRecord
 {
     protected static string $resource = RemissionResource::class;
+
+    public function getTitle(): string
+    {
+        return 'Nueva Remisión';
+    }
+
+    protected function getCreateFormAction(): Action
+    {
+        return parent::getCreateFormAction()->label('Crear remisión');
+    }
+
+    protected function getCancelFormAction(): Action
+    {
+        return parent::getCancelFormAction()->label('Cancelar');
+    }
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {

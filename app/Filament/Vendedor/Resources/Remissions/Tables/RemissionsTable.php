@@ -6,6 +6,8 @@ namespace App\Filament\Vendedor\Resources\Remissions\Tables;
 
 use App\Enums\PaymentType;
 use App\Enums\RemissionStatus;
+use App\Filament\Vendedor\Resources\Remissions\RemissionResource;
+use Filament\Actions\Action;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Tables\Columns\TextColumn;
@@ -19,14 +21,40 @@ class RemissionsTable
     {
         return $table
             ->defaultSort('issued_at', 'desc')
+            ->striped()
+            ->defaultPaginationPageOption(10)
+            ->paginated([10, 25, 50, 100])
+            ->extremePaginationLinks(false)
             ->columns([
-                TextColumn::make('id')->label('#')->prefix('#')->sortable()->weight('bold'),
-                TextColumn::make('issued_at')->label('Fecha')->dateTime('d/m/Y H:i')->sortable(),
-                TextColumn::make('client.name')->label('Cliente')->searchable()->weight('semibold'),
-                TextColumn::make('route')->label('Ruta')->badge(),
-                TextColumn::make('payment_type')->label('Pago')->badge(),
-                TextColumn::make('status')->label('Estado')->badge(),
-                TextColumn::make('total_amount')->label('Total')->money('COP')->alignEnd()->weight('bold'),
+                TextColumn::make('id')
+                    ->label('#')
+                    ->prefix('#')
+                    ->sortable()
+                    ->weight('bold'),
+                TextColumn::make('issued_at')
+                    ->label('Fecha')
+                    ->dateTime('d/m/Y H:i')
+                    ->sortable(),
+                TextColumn::make('client.name')
+                    ->label('Cliente')
+                    ->searchable()
+                    ->weight('semibold')
+                    ->wrap(),
+                TextColumn::make('route')
+                    ->label('Ruta')
+                    ->badge()
+                    ->toggleable(),
+                TextColumn::make('payment_type')
+                    ->label('Pago')
+                    ->badge(),
+                TextColumn::make('status')
+                    ->label('Estado')
+                    ->badge(),
+                TextColumn::make('total_amount')
+                    ->label('Total')
+                    ->money('COP')
+                    ->alignEnd()
+                    ->weight('bold'),
             ])
             ->filters([
                 SelectFilter::make('payment_type')
@@ -49,6 +77,16 @@ class RemissionsTable
             ])
             ->recordActions([
                 ViewAction::make()->label('Ver'),
+            ])
+            ->emptyStateHeading('Aún no tienes remisiones')
+            ->emptyStateDescription('Crea tu primera remisión para empezar.')
+            ->emptyStateIcon('heroicon-o-document-text')
+            ->emptyStateActions([
+                Action::make('createFirst')
+                    ->label('Crear primera remisión')
+                    ->icon('heroicon-o-plus')
+                    ->color('primary')
+                    ->url(fn () => RemissionResource::getUrl('create')),
             ]);
     }
 }
