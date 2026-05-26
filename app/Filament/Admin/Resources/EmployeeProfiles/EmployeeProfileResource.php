@@ -37,6 +37,12 @@ class EmployeeProfileResource extends Resource
         return $record?->user?->name;
     }
 
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->with(['user:id,name,email', 'media']);
+    }
+
     public static function form(Schema $schema): Schema
     {
         return EmployeeProfileForm::configure($schema);

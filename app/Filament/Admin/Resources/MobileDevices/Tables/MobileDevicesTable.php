@@ -31,8 +31,8 @@ class MobileDevicesTable
                     ->description(fn (MobileDevice $r) => 'Token Sanctum'),
                 TextColumn::make('tokenable_id')
                     ->label('Vendedor')
-                    ->state(fn (MobileDevice $r) => optional(User::find($r->tokenable_id))->name ?? '—')
-                    ->description(fn (MobileDevice $r) => optional(User::find($r->tokenable_id))->email)
+                    ->state(fn (MobileDevice $r) => $r->tokenable?->name ?? '—')
+                    ->description(fn (MobileDevice $r) => $r->tokenable?->email)
                     ->searchable(query: function ($query, string $search) {
                         $query->whereHas('tokenable', fn ($q) => $q
                             ->where('name', 'like', "%{$search}%")

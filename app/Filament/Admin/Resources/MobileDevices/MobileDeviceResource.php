@@ -35,7 +35,8 @@ class MobileDeviceResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->where('tokenable_type', User::class);
+            ->where('tokenable_type', User::class)
+            ->with('tokenable:id,name,email');
     }
 
     public static function table(Table $table): Table
