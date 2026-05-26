@@ -914,28 +914,219 @@ Mismo comportamiento que `index` pero stream XLSX. Filename:
 | GET | `/api/v1/remissions?all=1` | sanctum | ✅ (ya existía) |
 | GET | `/api/v1/remissions/export?all=1` | sanctum | ✅ (ya existía) |
 
-### 16.7 Pendiente — Prioridad 3 (CRUD catálogo)
+### 16.7 CRUD de Clientes (Prioridad 3 — ✅ implementado)
 
-No bloquean el drawer admin de la app móvil. Se implementarán en la próxima iteración:
+> Lectura: usar los endpoints públicos ya existentes `GET /api/v1/clients` y `GET /api/v1/clients/{id}`.
 
-| Método | Path |
-|--------|------|
-| POST | `/api/v1/admin/clients` |
-| PUT | `/api/v1/admin/clients/{id}` |
-| DELETE | `/api/v1/admin/clients/{id}` |
-| POST | `/api/v1/admin/products` |
-| PUT | `/api/v1/admin/products/{id}` |
-| DELETE | `/api/v1/admin/products/{id}` |
-| PATCH | `/api/v1/admin/clients/{c}/products/{p}` (override precio en pivot) |
+#### `POST /api/v1/admin/clients`
 
-### 16.8 Pendiente — Prioridad 4 (configuración global + gestión usuarios)
+Body:
+```json
+{
+  "name": "Cliente Demo SA",
+  "nit": "900123456-7",
+  "manager_name": "Juan Pérez",
+  "whatsapp": "+573001112233",
+  "phone": "+576051112233",
+  "email": "demo@cliente.co",
+  "delivery_point": "external",
+  "payment_type": "credit",
+  "address": "Cra 10 # 20-30",
+  "city": "Barrancabermeja",
+  "description": "...",
+  "notes": "..."
+}
+```
 
-| Método | Path |
-|--------|------|
-| GET | `/api/v1/admin/branding-settings` |
-| PUT | `/api/v1/admin/branding-settings` |
-| POST | `/api/v1/admin/users` (crear vendedor/admin) |
-| DELETE | `/api/v1/admin/users/{id}` (desactivar + revocar tokens) |
+Validaciones:
+- `name`, `nit`, `whatsapp`, `email`, `delivery_point`, `payment_type` → **obligatorios**
+- `delivery_point` → uno de: `external`, `warehouse`, `impala`, `refinery`, `traveler_route`, `other`
+- `payment_type` → uno de: `cash`, `cash_for_billing`, `credit`, `gift`, `other`
+
+**Side effect importante**: al crear el cliente se ejecuta automáticamente `AttachDefaultProductsAction`, que adjunta al pivot `client_product` todos los productos donde `is_default_for_new_clients=true` con `custom_price=NULL` (heredan el precio maestro).
+
+Respuesta 201: `ClientResource` con `data.products[]` cargado.
+
+#### `PUT /api/v1/admin/clients/{id}`
+
+Mismos campos, todos `sometimes`. Acepta también:
+- `is_active` (boolean)
+
+Respuesta 200: ClientResource refrescado.
+
+#### `DELETE /api/v1/admin/clients/{id}`
+
+**Soft delete**: marca `is_active=false` y aplica `SoftDeletes` (el registro se conserva con `deleted_at` para mantener histórico de remisiones). Respuesta 204.
+
+### 16.8 CRUD de Productos (Prioridad 3 — ✅ implementado)
+
+> Lectura: `GET /api/v1/products` (público para usuarios autenticados).
+
+#### `POST /api/v1/admin/products`
+
+Body:
+```json
+{
+  "sku": "HIELO-5K",
+  "name": "Hielo 5 kg",
+  "description": "Bolsa de hielo seco",
+  "category": "ice",
+  "unit": "bag",
+  "default_price": 7500,
+  "is_default_for_new_clients": true,
+  "is_active": true
+}
+```
+
+Validaciones:
+- `sku`, `name`, `category`, `unit`, `default_price` → obligatorios
+- `category` → `ice`, `water`, `empty_container`, `cooler`, `other`
+- `unit` → `unit`, `pack`, `box`, `bag`
+- `default_price` → integer en centavos COP (mín 0)
+- `sku` → único en `products`
+
+Respuesta 201: ProductResource.
+
+#### `PUT /api/v1/admin/products/{id}`
+
+Mismos campos, todos `sometimes`. `sku` se valida unique excepto sobre el propio registro.
+
+#### `DELETE /api/v1/admin/products/{id}`
+
+Soft delete + `is_active=false`. Respuesta 204.
+
+#### `PATCH /api/v1/admin/clients/{clientId}/products/{productId}`
+
+Crea o actualiza el override en el pivot `client_product` para ese cliente.
+
+Body (todos opcionales):
+```json
+{
+  "custom_price": 9000,
+  "custom_alias": "Hielo grande",
+  "is_available": true,
+  "notes": "Precio especial 2026"
+}
+```
+
+Si el cliente no tenía aún ese producto en su pivot → se attach automáticamente. Si ya existía → se actualiza.
+
+Respuesta 200:
+```json
+{
+  "data": {
+    "client_id": 1,
+    "product_id": 1,
+    "custom_price": 9000,
+    "custom_alias": "Hielo grande",
+    "is_available": true,
+    "notes": "Precio especial 2026",
+    "effective_price": 9000
+  }
+}
+```
+
+`effective_price` = `custom_price ?? default_price` (lo que la app móvil debería usar al armar una remisión).
+
+### 16.9 Branding Settings (Prioridad 4 — ✅ implementado)
+
+#### `GET /api/v1/admin/branding-settings`
+
+```json
+{
+  "data": {
+    "company_name": "SVD",
+    "company_tagline": "Sistema de Ventas y Despachos",
+    "primary_phone": "(317) 667 8676",
+    "secondary_phone": "(311) 226 1339",
+    "city": "Barrancabermeja",
+    "address": "Colombia",
+    "email_inbox": "remisiones@example.com",
+    "email_cash": "remisioncontado@example.com",
+    "email_cash_for_billing": "facturacion@example.com",
+    "email_credit": "credito@example.com",
+    "logo_path": "branding/logo.png",
+    "logo_url": "https://svd.example.com/storage/branding/logo.png"
+  }
+}
+```
+
+`logo_url` es derivado — si el archivo no existe en disco, devuelve `null` aunque `logo_path` tenga valor.
+
+#### `PUT /api/v1/admin/branding-settings`
+
+Mismos campos, todos `sometimes`. Validaciones email para los 4 `email_*`.
+
+> Subir el archivo del logo en sí (PNG/JPG) por API **no está implementado**. Por ahora la única forma es desde `/admin/settings-page` en el panel web. Si la app móvil necesita cambiar logo, abrir ticket.
+
+### 16.10 Gestión de Usuarios (Prioridad 4 — ✅ implementado)
+
+#### `POST /api/v1/admin/users`
+
+Crea un usuario nuevo + asigna rol.
+
+Body:
+```json
+{
+  "name": "Nuevo Vendedor",
+  "email": "vendedor.nuevo@svd.test",
+  "password": "secret123",
+  "role": "seller"
+}
+```
+
+- `password` mínimo 8 chars
+- `role` debe ser `seller`, `admin` o `super_admin`
+- `email` único
+
+Respuesta 201:
+```json
+{
+  "data": {
+    "id": 42,
+    "name": "Nuevo Vendedor",
+    "email": "vendedor.nuevo@svd.test",
+    "roles": ["seller"],
+    "role_label": "Vendedor",
+    "is_admin": false
+  }
+}
+```
+
+#### `DELETE /api/v1/admin/users/{id}`
+
+**Desactivar usuario** — NO hace hard delete (preserva el historial de remisiones por FK). Acciones:
+1. Revoca todos los `PersonalAccessToken` del usuario
+2. Le quita todos los roles asignados → sin acceso a paneles ni app móvil
+3. El registro permanece en `users` para que sus remisiones históricas sigan referenciándolo
+
+Si después quieres reactivarlo: `POST /api/v1/admin/users` con el mismo email → 422 unique error. Tendrás que reasignar el rol vía panel Filament por ahora (en próxima iteración: endpoint `POST /users/{id}/reactivate`).
+
+Respuesta 204.
+
+### 16.11 Resumen completo — Todos los endpoints admin
+
+| Método | Path | Implementado |
+|--------|------|--------------|
+| GET | `/api/v1/admin/mobile-devices` | ✅ |
+| DELETE | `/api/v1/admin/mobile-devices/{id}` | ✅ |
+| POST | `/api/v1/admin/mobile-devices/revoke-all` | ✅ |
+| GET | `/api/v1/admin/mobile-settings` | ✅ |
+| PUT | `/api/v1/admin/mobile-settings` | ✅ |
+| GET | `/api/v1/admin/users[?role=]` | ✅ |
+| POST | `/api/v1/admin/users` | ✅ |
+| DELETE | `/api/v1/admin/users/{id}` | ✅ |
+| POST | `/api/v1/admin/clients` | ✅ |
+| PUT | `/api/v1/admin/clients/{id}` | ✅ |
+| DELETE | `/api/v1/admin/clients/{id}` | ✅ |
+| POST | `/api/v1/admin/products` | ✅ |
+| PUT | `/api/v1/admin/products/{id}` | ✅ |
+| DELETE | `/api/v1/admin/products/{id}` | ✅ |
+| PATCH | `/api/v1/admin/clients/{c}/products/{p}` | ✅ |
+| GET | `/api/v1/admin/branding-settings` | ✅ |
+| PUT | `/api/v1/admin/branding-settings` | ✅ |
+
+**Total: 17 endpoints administrativos.** Prioridades 1-4 completas.
 
 ---
 

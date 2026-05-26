@@ -9,6 +9,9 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
@@ -51,5 +54,47 @@ class UserController extends Controller
                 'total' => $users->total(),
             ],
         ]);
+    }
+
+    public function store(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:128'],
+            'email' => ['required', 'email', 'max:128', 'unique:users,email'],
+            'password' => ['required', 'string', 'min:8'],
+            'role' => ['required', Rule::in(['seller', 'admin', 'super_admin'])],
+        ]);
+
+        $user = User::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => Hash::make($data['password']),
+            'email_verified_at' => now(),
+        ]);
+        $user->assignRole($data['role']);
+
+        return response()->json([
+            'data' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'roles' => $user->getRoleNames(),
+                'role_label' => $user->getRoleLabel(),
+                'is_admin' => $user->isAdmin(),
+            ],
+        ], 201);
+    }
+
+    /**
+     * Desactiva un usuario: revoca todos sus tokens + lo deja sin rol
+     * (queda sin acceso a paneles y la app móvil). No hace hard delete
+     * para preservar el historial de remisiones (FK).
+     */
+    public function destroy(User $user): Response
+    {
+        $user->tokens()->delete();
+        $user->syncRoles([]);
+
+        return response()->noContent();
     }
 }

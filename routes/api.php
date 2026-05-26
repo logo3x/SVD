@@ -2,8 +2,11 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\V1\Admin\BrandingSettingsController;
+use App\Http\Controllers\Api\V1\Admin\ClientController as AdminClientController;
 use App\Http\Controllers\Api\V1\Admin\MobileDeviceController;
 use App\Http\Controllers\Api\V1\Admin\MobileSettingsController;
+use App\Http\Controllers\Api\V1\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Api\V1\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CatalogController;
@@ -60,6 +63,27 @@ Route::middleware(EnforceMobileSettings::class)->group(function (): void {
 
             // P2 — Vendedores con stats
             Route::get('users', [AdminUserController::class, 'index']);
+
+            // P4 — Crear / desactivar usuarios
+            Route::post('users', [AdminUserController::class, 'store']);
+            Route::delete('users/{user}', [AdminUserController::class, 'destroy']);
+
+            // P3 — CRUD clientes (lectura usa el endpoint público /api/v1/clients)
+            Route::post('clients', [AdminClientController::class, 'store']);
+            Route::put('clients/{client}', [AdminClientController::class, 'update']);
+            Route::delete('clients/{client}', [AdminClientController::class, 'destroy']);
+
+            // P3 — CRUD productos catálogo maestro
+            Route::post('products', [AdminProductController::class, 'store']);
+            Route::put('products/{product}', [AdminProductController::class, 'update']);
+            Route::delete('products/{product}', [AdminProductController::class, 'destroy']);
+
+            // P3 — Override precio en pivot client_product
+            Route::patch('clients/{client}/products/{product}', [AdminProductController::class, 'updateClientPivot']);
+
+            // P4 — Branding settings (logo, datos empresa, emails routing)
+            Route::get('branding-settings', [BrandingSettingsController::class, 'show']);
+            Route::put('branding-settings', [BrandingSettingsController::class, 'update']);
         });
     });
 });
