@@ -24,16 +24,11 @@ Lista de tareas pendientes registradas durante el desarrollo. Marcar con `[x]` c
         5. Acepar que Laravel probablemente no arrancará por falta de cache/migrate.
 
 
-- [ ] **Manual de usuario web** — Escribir la guía de uso del panel `/admin` y `/vendedor` para usuarios finales (no técnicos). Incluir:
-    - Cómo crear un cliente nuevo y qué pasa con los productos por defecto.
-    - Cómo aplicar un override de precio en `Clientes › Productos del Cliente`.
-    - Cómo crear una remisión paso a paso (selección de cliente, productos, ruta, firma).
-    - Cómo descargar el PDF y reenviar copia por email.
-    - Cómo usar la página de Reportes con los filtros combinables.
-    - Cómo gestionar usuarios, roles y permisos vía Shield.
-    - Cómo cambiar la marca (logo, eslogan, emails) en `Configuración`.
-    - Screenshots o GIFs cortos por sección.
-    - Formato sugerido: `docs/manual-usuario.md` con capítulos numerados, o un PDF generado desde Markdown.
+- [x] **Manual de usuario web** — Hecho: `docs/manual-usuario.md` con 14 capítulos
+    cubriendo acceso, roles, clientes + productos por defecto, precios especiales,
+    catálogo, creación de remisión (incl. firma en pantalla), PDF/reenvío, reportes,
+    usuarios/roles/impersonación, branding, módulo app móvil y panel vendedor + FAQ.
+    Pendiente opcional (no urgente): añadir screenshots/GIFs y generar versión PDF.
 
 ## Ideas futuras (no urgentes)
 
