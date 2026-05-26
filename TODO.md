@@ -4,7 +4,7 @@ Lista de tareas pendientes registradas durante el desarrollo. Marcar con `[x]` c
 
 ## Pendientes
 
-- [ ] **Deploy público de SVD** — Tenemos el ZIP `svd-deploy.zip` (28.9 MB) listo en el escritorio del usuario, pero el deploy a InfinityFree quedó bloqueado:
+- [ ] **Deploy público de SVD** — ⏸️ EN PAUSA (decisión del usuario, sesión 26-may-2026). Retomar eligiendo plataforma: Railway (recomendada), Render o VPS. InfinityFree descartado. La app móvil funciona contra Wamp local mientras tanto. Tenemos el ZIP `svd-deploy.zip` (28.9 MB) listo en el escritorio del usuario:
     - InfinityFree free **no es viable** para Laravel: no hay SSH (no se puede correr `php artisan migrate`, `storage:link`, `key:generate`), File Manager limitado y `htdocs/` sigue vacío (solo placeholders `index2.html` + `files for your website should be uploaded here!`).
     - Lo que ya está hecho:
         - ✅ `svd-dump.sql` (269 KB) en el escritorio para importar por phpMyAdmin
