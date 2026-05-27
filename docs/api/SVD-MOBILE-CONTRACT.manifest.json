@@ -1,6 +1,6 @@
 {
-    "version": "3e03c7a92cc4",
-    "generated_at": "2026-05-26T01:02:59+00:00",
+    "version": "285b3eed0212",
+    "generated_at": "2026-05-27T02:33:52+00:00",
     "routes_count": 31,
     "enums": {
         "payment_types": 5,

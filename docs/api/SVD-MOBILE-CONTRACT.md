@@ -5,9 +5,9 @@
 
 | Campo | Valor |
 |-------|-------|
-| **Versión** | `3e03c7a92cc4` |
-| **Generado** | `2026-05-26T01:02:59+00:00` |
-| **Base URL (prod)** | `https://svd.example.com/api/v1` |
+| **Versión** | `285b3eed0212` |
+| **Generado** | `2026-05-27T02:33:52+00:00` |
+| **Base URL (prod)** | `http://svd.sytes.net/api/v1` |
 
 ---
 
@@ -233,4 +233,4 @@ cp "$USERPROFILE/Desktop/SVD-MOBILE-CONTRACT.md" docs/SVD-CONTRACT.md
 
 **Repo backend:** `https://github.com/logo3x/SVD`
 **Comando para regenerar:** `php artisan svd:contract --desktop`
-**Versión actual:** `3e03c7a92cc4` — generado `2026-05-26T01:02:59+00:00`
+**Versión actual:** `285b3eed0212` — generado `2026-05-27T02:33:52+00:00`
