@@ -3,6 +3,9 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Admin\Widgets\AdminWelcome;
+use App\Filament\Admin\Widgets\TopClientesChart;
+use App\Filament\Admin\Widgets\TopProductosChart;
+use App\Filament\Admin\Widgets\TopVendedoresChart;
 use App\Filament\Admin\Widgets\UltimasRemisionesTable;
 use App\Filament\Admin\Widgets\VentasMesChart;
 use App\Filament\Admin\Widgets\VentasOverview;
@@ -48,6 +51,9 @@ class AdminPanelProvider extends PanelProvider
                 AdminWelcome::class,
                 VentasOverview::class,
                 VentasMesChart::class,
+                TopVendedoresChart::class,
+                TopClientesChart::class,
+                TopProductosChart::class,
                 UltimasRemisionesTable::class,
             ])
             ->middleware([
