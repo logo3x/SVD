@@ -34,8 +34,14 @@ Permitir a vendedores/repartidores registrar remisiones de venta **en terreno**,
 
 ## 3. Conexión con el Backend
 
-- **Base URL desarrollo**: `http://127.0.0.1:8000/api/v1`
-- **Base URL producción**: configurable vía settings de la app, también expuesta en `/admin/mobile-settings-page` (campo `api_base_url`).
+> ✅ **PRODUCCIÓN EN VIVO** (27 may 2026): el backend ya está desplegado en un
+> servidor Windows/IIS y responde. Verificado: `GET http://svd.sytes.net/up` → 200.
+
+- **Base URL producción**: `http://svd.sytes.net/api/v1` ← **usar esta en la app**
+- **Base URL desarrollo (Wamp local)**: `http://127.0.0.1:8000/api/v1` o `http://192.168.1.10:8000/api/v1` en LAN
+- **IP directa** (si el DNS de sytes.net no resuelve): `http://20.186.79.27/api/v1`
+- El valor vigente también se expone en `/admin/mobile-settings-page` (campo `api_base_url`) y en el manifest del contrato (`SVD-MOBILE-CONTRACT.manifest.json`).
+- ⚠️ Por ahora es **HTTP (sin TLS)** — las credenciales viajan en claro. Está pendiente montar HTTPS (win-acme) en el servidor; cuando se haga, la URL pasará a `https://svd.sytes.net/api/v1`.
 - **Content-Type**: `application/json` salvo upload de firma (`multipart/form-data`).
 - **Headers obligatorios en cada request**:
   - `Accept: application/json`
