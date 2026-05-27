@@ -13,9 +13,11 @@ class TopVendedoresChart extends ChartWidget
 {
     protected ?string $heading = 'Vendedores con más ventas (90 días)';
 
-    protected ?string $description = 'Top 8 por monto total vendido.';
+    protected ?string $description = 'Top 6 por monto total vendido.';
 
     protected int|string|array $columnSpan = 1;
+
+    protected ?string $maxHeight = '320px';
 
     protected static bool $isLazy = true;
 
@@ -28,7 +30,7 @@ class TopVendedoresChart extends ChartWidget
                 ->selectRaw('users.name AS vendedor, SUM(remissions.total_amount) AS total')
                 ->groupBy('users.id', 'users.name')
                 ->orderByDesc('total')
-                ->limit(8)
+                ->limit(6)
                 ->pluck('total', 'vendedor')
                 ->all();
         });

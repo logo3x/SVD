@@ -13,9 +13,11 @@ class TopClientesChart extends ChartWidget
 {
     protected ?string $heading = 'Empresas que más compran (90 días)';
 
-    protected ?string $description = 'Top 8 clientes por monto total facturado.';
+    protected ?string $description = 'Top 6 clientes por monto total facturado.';
 
     protected int|string|array $columnSpan = 1;
+
+    protected ?string $maxHeight = '320px';
 
     protected static bool $isLazy = true;
 
@@ -28,7 +30,7 @@ class TopClientesChart extends ChartWidget
                 ->selectRaw('clients.name AS cliente, SUM(remissions.total_amount) AS total')
                 ->groupBy('clients.id', 'clients.name')
                 ->orderByDesc('total')
-                ->limit(8)
+                ->limit(6)
                 ->pluck('total', 'cliente')
                 ->all();
         });

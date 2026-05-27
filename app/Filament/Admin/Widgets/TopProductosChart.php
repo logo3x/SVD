@@ -13,9 +13,11 @@ class TopProductosChart extends ChartWidget
 {
     protected ?string $heading = 'Productos más vendidos (90 días)';
 
-    protected ?string $description = 'Top 8 por unidades despachadas.';
+    protected ?string $description = 'Top 6 por unidades despachadas.';
 
-    protected int|string|array $columnSpan = 'full';
+    protected int|string|array $columnSpan = 1;
+
+    protected ?string $maxHeight = '320px';
 
     protected static bool $isLazy = true;
 
@@ -29,23 +31,19 @@ class TopProductosChart extends ChartWidget
                 ->selectRaw('products.name AS producto, SUM(remission_product.quantity) AS unidades')
                 ->groupBy('products.id', 'products.name')
                 ->orderByDesc('unidades')
-                ->limit(8)
+                ->limit(6)
                 ->pluck('unidades', 'producto')
                 ->all();
         });
-
-        $palette = [
-            'rgba(14, 165, 233, 0.8)', 'rgba(16, 185, 129, 0.8)', 'rgba(99, 102, 241, 0.8)',
-            'rgba(245, 158, 11, 0.8)', 'rgba(239, 68, 68, 0.8)', 'rgba(168, 85, 247, 0.8)',
-            'rgba(236, 72, 153, 0.8)', 'rgba(20, 184, 166, 0.8)',
-        ];
 
         return [
             'datasets' => [
                 [
                     'label' => 'Unidades',
                     'data' => array_map('intval', array_values($rows)),
-                    'backgroundColor' => array_slice($palette, 0, count($rows)),
+                    'backgroundColor' => 'rgba(14, 165, 233, 0.7)',
+                    'borderColor' => 'rgb(14, 165, 233)',
+                    'borderWidth' => 1,
                 ],
             ],
             'labels' => array_keys($rows),
@@ -54,7 +52,7 @@ class TopProductosChart extends ChartWidget
 
     protected function getType(): string
     {
-        return 'doughnut';
+        return 'bar';
     }
 
     /**
@@ -63,8 +61,9 @@ class TopProductosChart extends ChartWidget
     protected function getOptions(): array
     {
         return [
+            'indexAxis' => 'y',
             'plugins' => [
-                'legend' => ['position' => 'right'],
+                'legend' => ['display' => false],
             ],
         ];
     }
