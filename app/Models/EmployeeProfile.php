@@ -38,6 +38,23 @@ class EmployeeProfile extends Model implements HasMedia
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * Nombre a mostrar: el del usuario vinculado si existe, o el
+     * `full_name` propio del empleado (cuando no tiene acceso al sistema).
+     */
+    public function displayName(): string
+    {
+        return $this->user?->name ?? $this->full_name ?? 'Sin nombre';
+    }
+
+    /**
+     * Correo a mostrar: el del usuario vinculado o el propio del empleado.
+     */
+    public function displayEmail(): ?string
+    {
+        return $this->user?->email ?? $this->email;
+    }
+
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('avatar')->singleFile();
@@ -48,8 +65,8 @@ class EmployeeProfile extends Model implements HasMedia
     {
         return LogOptions::defaults()
             ->logOnly([
-                'user_id', 'national_id', 'job_title', 'employment_status',
-                'employment_link', 'contract_start', 'retired_at',
+                'user_id', 'full_name', 'email', 'national_id', 'job_title',
+                'employment_status', 'employment_link', 'contract_start', 'retired_at',
             ])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();

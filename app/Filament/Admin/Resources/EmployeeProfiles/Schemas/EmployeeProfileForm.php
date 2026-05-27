@@ -9,6 +9,7 @@ use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 
@@ -26,12 +27,25 @@ class EmployeeProfileForm
                             ->columns(2)
                             ->schema([
                                 Select::make('user_id')
-                                    ->label('Usuario del sistema')
+                                    ->label('Usuario del sistema (opcional)')
+                                    ->helperText('Vincula este empleado a una cuenta de acceso. Déjalo vacío si el empleado no usa el sistema.')
                                     ->relationship('user', 'name')
                                     ->searchable()
                                     ->preload()
-                                    ->required()
                                     ->unique(ignoreRecord: true)
+                                    ->live()
+                                    ->columnSpanFull(),
+                                TextInput::make('full_name')
+                                    ->label('Nombre completo')
+                                    ->maxLength(128)
+                                    // Obligatorio sólo cuando NO se vincula un usuario.
+                                    ->required(fn (Get $get): bool => blank($get('user_id')))
+                                    ->helperText('Requerido si el empleado no tiene usuario del sistema.')
+                                    ->columnSpanFull(),
+                                TextInput::make('email')
+                                    ->label('Correo')
+                                    ->email()
+                                    ->maxLength(128)
                                     ->columnSpanFull(),
                                 SpatieMediaLibraryFileUpload::make('avatar')
                                     ->label('Foto')

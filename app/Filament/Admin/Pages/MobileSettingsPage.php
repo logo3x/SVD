@@ -106,7 +106,7 @@ class MobileSettingsPage extends Page implements HasForms
                             ->required(),
                         TextInput::make('default_token_ttl_days')
                             ->label('TTL por defecto de tokens (días)')
-                            ->numeric()
+                            ->integer()
                             ->minValue(0)
                             ->helperText('0 = los tokens no expiran.')
                             ->required(),
@@ -120,9 +120,18 @@ class MobileSettingsPage extends Page implements HasForms
         $data = $this->form->getState();
 
         foreach ($data as $key => $value) {
-            if (property_exists($settings, $key)) {
-                $settings->{$key} = $value;
+            if (! property_exists($settings, $key)) {
+                continue;
             }
+
+            // El TextInput numérico de Livewire puede entregar el valor como
+            // float/string; casteamos al tipo declarado de la propiedad.
+            $type = (new \ReflectionProperty($settings, $key))->getType();
+            if ($type instanceof \ReflectionNamedType && $type->getName() === 'int') {
+                $value = (int) $value;
+            }
+
+            $settings->{$key} = $value;
         }
 
         $settings->save();

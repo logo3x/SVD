@@ -34,7 +34,7 @@ class EmployeeProfileResource extends Resource
 
     public static function getRecordTitle($record): ?string
     {
-        return $record?->user?->name;
+        return $record?->displayName();
     }
 
     public static function getEloquentQuery(): Builder

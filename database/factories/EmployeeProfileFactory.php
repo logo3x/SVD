@@ -41,4 +41,17 @@ class EmployeeProfileFactory extends Factory
             'bank_account' => fake()->numerify('############'),
         ];
     }
+
+    /**
+     * Empleado sin usuario del sistema (RRHH sin acceso/login).
+     * Usa full_name/email propios en lugar del usuario vinculado.
+     */
+    public function withoutUser(): static
+    {
+        return $this->state(fn (): array => [
+            'user_id' => null,
+            'full_name' => fake()->name(),
+            'email' => fake()->safeEmail(),
+        ]);
+    }
 }

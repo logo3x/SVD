@@ -19,16 +19,19 @@ class EmployeeProfilesTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->defaultSort('user.name')
             ->columns([
                 SpatieMediaLibraryImageColumn::make('avatar')
                     ->label('Foto')
                     ->collection('avatar')
                     ->circular(),
-                TextColumn::make('user.name')
+                TextColumn::make('display_name')
                     ->label('Nombre')
-                    ->searchable()
-                    ->sortable()
+                    // Nombre del usuario vinculado o el full_name propio.
+                    ->state(fn ($record): string => $record->displayName())
+                    ->description(fn ($record) => $record->user ? 'Usuario del sistema' : 'Sin acceso')
+                    ->searchable(query: fn ($query, string $search) => $query
+                        ->where('full_name', 'like', "%{$search}%")
+                        ->orWhereHas('user', fn ($q) => $q->where('name', 'like', "%{$search}%")))
                     ->weight('semibold'),
                 TextColumn::make('national_id')
                     ->label('Cédula')
