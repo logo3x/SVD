@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Artisan;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
@@ -15,6 +16,19 @@ class DatabaseSeeder extends Seeder
         $this->call(MasterProductCatalogSeeder::class);
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        // Genera los permisos de Filament Shield ANTES de asignarlos a los
+        // roles. Así el seeder es robusto al orden de ejecución: no importa
+        // si shield:generate se corrió antes o no — aquí nos aseguramos de
+        // que los permisos existan para poder asignarlos a admin/seller.
+        if (Permission::query()->count() === 0) {
+            Artisan::call('shield:generate', [
+                '--all' => true,
+                '--panel' => 'admin',
+                '--no-interaction' => true,
+            ]);
+            app(PermissionRegistrar::class)->forgetCachedPermissions();
+        }
 
         Role::findOrCreate('super_admin', 'web');
         $admin = Role::findOrCreate('admin', 'web');
