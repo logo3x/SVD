@@ -9,6 +9,8 @@ use App\Filament\Admin\Widgets\TopVendedoresChart;
 use App\Filament\Admin\Widgets\UltimasRemisionesTable;
 use App\Filament\Admin\Widgets\VentasMesChart;
 use App\Filament\Admin\Widgets\VentasOverview;
+use App\Filament\Admin\Widgets\VentasPorPagoChart;
+use App\Filament\Admin\Widgets\VentasPorRutaChart;
 use App\Filament\Auth\Login as SvdLogin;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Http\Middleware\Authenticate;
@@ -54,6 +56,8 @@ class AdminPanelProvider extends PanelProvider
                 TopVendedoresChart::class,
                 TopClientesChart::class,
                 TopProductosChart::class,
+                VentasPorPagoChart::class,
+                VentasPorRutaChart::class,
                 UltimasRemisionesTable::class,
             ])
             ->middleware([
