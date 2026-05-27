@@ -1,6 +1,15 @@
 <?php
 
 declare(strict_types=1);
+use App\Filament\Admin\Widgets\AdminWelcome;
+use App\Filament\Admin\Widgets\TopClientesChart;
+use App\Filament\Admin\Widgets\TopProductosChart;
+use App\Filament\Admin\Widgets\TopVendedoresChart;
+use App\Filament\Admin\Widgets\UltimasRemisionesTable;
+use App\Filament\Admin\Widgets\VentasMesChart;
+use App\Filament\Admin\Widgets\VentasOverview;
+use App\Filament\Admin\Widgets\VentasPorPagoChart;
+use App\Filament\Admin\Widgets\VentasPorRutaChart;
 use BezhanSalleh\FilamentShield\Resources\Roles\RoleResource;
 use Filament\Pages\Dashboard;
 use Filament\Widgets\AccountWidget;
@@ -218,6 +227,17 @@ return [
         'exclude' => [
             AccountWidget::class,
             FilamentInfoWidget::class,
+            // Widgets del dashboard: informativos, sin control de permisos.
+            // Así se ven sin necesidad de asignar permisos por rol.
+            AdminWelcome::class,
+            VentasOverview::class,
+            VentasMesChart::class,
+            TopVendedoresChart::class,
+            TopClientesChart::class,
+            TopProductosChart::class,
+            VentasPorPagoChart::class,
+            VentasPorRutaChart::class,
+            UltimasRemisionesTable::class,
         ],
     ],
 
