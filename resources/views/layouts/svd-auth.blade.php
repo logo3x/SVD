@@ -63,11 +63,20 @@
 
                     <div class="svd-login-rule-soft"></div>
 
+                    @php
+                        // Credencial demo según el panel actual: el login del
+                        // vendedor muestra el vendedor; el admin muestra el admin.
+                        $panelId = \Filament\Facades\Filament::getCurrentPanel()?->getId();
+                        [$demoEmail, $demoPass] = match ($panelId) {
+                            'vendedor' => ['vendedor@svd.test', 'vendedor'],
+                            default => ['admin@svd.test', 'admin'],
+                        };
+                    @endphp
                     <div>
                         <div class="svd-login-form-foot-label">CUENTA DE DEMO</div>
                         <div class="svd-login-form-foot-creds">
-                            superadmin@svd.test<br>
-                            Super/Admin?
+                            {{ $demoEmail }}<br>
+                            {{ $demoPass }}
                         </div>
                     </div>
                 </div>
