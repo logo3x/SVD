@@ -4,6 +4,42 @@ Lista de tareas pendientes registradas durante el desarrollo. Marcar con `[x]` c
 
 ## Pendientes
 
+- [ ] **🔴 URGENTE — Login en producción (svd.sytes.net) en bucle** — Tras intentar
+    ver/descargar el reporte Excel, dejó de poder entrar `admin@svd.test` y
+    `vendedor@svd.test`. Síntoma: el login **parpadea y vuelve al login SIN mensaje**,
+    también en incógnito. Estado del diagnóstico (27-may-2026):
+    - ✅ Usuarios existen con sus roles (super_admin / admin / seller).
+    - ✅ `admin@svd.test` + `admin` → Hash::check da **true** (credencial correcta).
+    - ✅ 91 permisos Shield generados.
+    - ✅ Config OK: APP_KEY len 51, SESSION_DRIVER=database, SESSION_DOMAIN=null,
+      SESSION_SECURE_COOKIE=false, APP_URL=http://svd.sytes.net, cookie=svd-session.
+    - ✅ Tabla `sessions` existe; hay 3 sesiones guardadas (el server SÍ autentica).
+    - ✅ Permisos storage + bootstrap/cache concedidos a IIS_IUSRS.
+    - ✅ Log de Laravel SIN errores al intentar entrar.
+    - ❌ Incógnito tampoco entra (descarta cookie vieja del navegador).
+    - **Acción tomada (commit `d955c45`):** se quitó el middleware
+      `AuthenticateSession` de ambos paneles (admin + vendedor) — era sospechoso
+      porque invalida la sesión si el hash de contraseña cambió tras migrate:fresh.
+      **PENDIENTE: confirmar en el servidor si esto lo resolvió** (hacer git pull +
+      optimize:clear + caches + truncate sessions, y probar login).
+    - **Si AÚN falla tras `d955c45`**, hipótesis siguientes a investigar:
+      1. El commit del Excel (`f147a10`) creó `storage/app/temp`; revisar si algo
+         del StreamedResponse o el `mkdir` interfiere con la respuesta del login.
+      2. Revisar `bootstrap/cache/config.php` viejo en el server (un `config:cache`
+         con un APP_KEY distinto al `.env` actual rompería el descifrado de la cookie
+         de sesión → parpadeo). Probar: `php artisan config:clear` y dejar SIN cachear
+         config temporalmente para ver si entra.
+      3. Probar `SESSION_DRIVER=file` temporalmente: si con file entra pero con
+         database no, el problema es escritura en la tabla sessions desde IIS.
+      4. Revisar el commit de las gráficas (`12c6f6c`): Dashboard custom +
+         VentasOverview con query de Product. Si el Dashboard truena al cargar tras
+         login, Filament puede rebotar al login. Probar entrar a `/admin` con un
+         usuario y mirar si el 500 ocurre en el Dashboard (revisar log con
+         APP_DEBUG=true en el momento exacto del parpadeo).
+    - **Quick win a probar primero la próxima sesión:** en el server,
+      `php artisan config:clear` (sin volver a cachear) + truncate sessions +
+      probar login. Si entra → era el config cache con key desincronizada.
+
 - [ ] **Deploy público de SVD** — ⏸️ EN PAUSA (decisión del usuario, sesión 26-may-2026). Retomar eligiendo plataforma: Railway (recomendada), Render o VPS. InfinityFree descartado. La app móvil funciona contra Wamp local mientras tanto. Tenemos el ZIP `svd-deploy.zip` (28.9 MB) listo en el escritorio del usuario:
     - InfinityFree free **no es viable** para Laravel: no hay SSH (no se puede correr `php artisan migrate`, `storage:link`, `key:generate`), File Manager limitado y `htdocs/` sigue vacío (solo placeholders `index2.html` + `files for your website should be uploaded here!`).
     - Lo que ya está hecho:
