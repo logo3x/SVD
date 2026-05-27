@@ -13,28 +13,39 @@ class RemissionInfolist
     public static function configure(Schema $schema): Schema
     {
         return $schema
+            // Una sola columna: las secciones se apilan verticalmente
+            // y ocupan todo el ancho disponible.
+            ->columns(1)
             ->components([
                 Section::make('Comprobante')
-                    ->columns(3)
+                    ->description('Datos generales de la remisión')
+                    ->columns(2)
+                    ->columnSpanFull()
                     ->components([
                         TextEntry::make('id')->label('# Remisión')->prefix('#')->weight('bold'),
-                        TextEntry::make('issued_at')->label('Fecha')->dateTime('d/m/Y H:i'),
                         TextEntry::make('status')->label('Estado')->badge(),
-                        TextEntry::make('client.name')->label('Cliente')->weight('semibold'),
-                        TextEntry::make('client.nit')->label('NIT'),
-                        TextEntry::make('client.address')->label('Dirección'),
-                        TextEntry::make('user.name')->label('Vendedor'),
+                        TextEntry::make('issued_at')->label('Fecha de emisión')->dateTime('d/m/Y H:i'),
                         TextEntry::make('route')->label('Ruta')->badge(),
                         TextEntry::make('payment_type')->label('Tipo de pago')->badge(),
-                        TextEntry::make('observations')->label('Observaciones')->placeholder('—')->columnSpanFull(),
+                        TextEntry::make('user.name')->label('Vendedor'),
+                    ]),
+
+                Section::make('Cliente')
+                    ->columns(2)
+                    ->columnSpanFull()
+                    ->components([
+                        TextEntry::make('client.name')->label('Cliente')->weight('semibold'),
+                        TextEntry::make('client.nit')->label('NIT'),
+                        TextEntry::make('client.address')->label('Dirección')->columnSpanFull()->placeholder('—'),
                     ]),
 
                 Section::make('Productos')
+                    ->columnSpanFull()
                     ->components([
                         RepeatableEntry::make('products')
                             ->label('')
                             ->columns(4)
-                            ->schema([
+                            ->components([
                                 TextEntry::make('name')->label('Producto')->weight('semibold')->columnSpan(2),
                                 TextEntry::make('pivot.quantity')->label('Cantidad'),
                                 TextEntry::make('pivot.unit_price_snapshot')->label('Precio unit.')->money('COP'),
@@ -45,17 +56,25 @@ class RemissionInfolist
                             ->money('COP')
                             ->size('xl')
                             ->weight('bold')
-                            ->color('success'),
+                            ->color('success')
+                            ->alignEnd()
+                            ->columnSpanFull(),
                     ]),
 
-                Section::make('Firma')
+                Section::make('Observaciones y firma')
+                    ->columnSpanFull()
                     ->components([
+                        TextEntry::make('observations')
+                            ->label('Observaciones')
+                            ->placeholder('Sin observaciones')
+                            ->columnSpanFull(),
                         SpatieMediaLibraryImageEntry::make('signature')
                             ->label('Firma del cliente')
                             ->collection('signature')
                             ->disk('local')
                             ->visibility('private')
-                            ->height(120),
+                            ->height(120)
+                            ->columnSpanFull(),
                     ]),
             ]);
     }
