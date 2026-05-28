@@ -14,17 +14,27 @@ use Illuminate\Support\Carbon;
 class DemoDataSeeder extends Seeder
 {
     /**
-     * Datos de demostración (no se ejecuta por defecto en producción).
-     * Crea 5 clientes con algunos overrides de precio, 2 vendedores y ~20 remisiones de muestra.
+     * Datos de demostración para visualizar el funcionamiento (gráficas,
+     * reportes, dashboard). Volumen ampliado y repartido en 90 días —que es
+     * la ventana de las gráficas del dashboard— para que se vea poblado.
+     *
+     * Volúmenes configurables (ajustables abajo):
+     *   8 vendedores, 18 clientes, ~220 remisiones en los últimos 90 días.
      */
     public function run(): void
     {
-        $sellers = User::factory()->count(2)->create()->each(
+        $sellerCount = 8;
+        $clientCount = 18;
+        $remissionCount = 220;
+        $daysBack = 90;
+
+        $sellers = User::factory()->count($sellerCount)->create()->each(
             fn (User $u) => $u->assignRole('seller'),
         );
 
-        $clients = Client::factory()->count(5)->create();
+        $clients = Client::factory()->count($clientCount)->create();
 
+        // Algunos overrides de precio para mostrar la cascada de precios.
         $product = Product::where('sku', 'H-5000')->first();
         if ($product) {
             $clients->first()->products()->updateExistingPivot($product->id, ['custom_price' => 7500]);
@@ -33,10 +43,24 @@ class DemoDataSeeder extends Seeder
 
         $paymentTypes = PaymentType::cases();
 
-        for ($i = 0; $i < 20; $i++) {
+        // Pre-cargamos los productos disponibles por cliente para no consultar
+        // en cada iteración (evita N+1 en un seeder de cientos de remisiones).
+        $availableByClient = [];
+        foreach ($clients as $client) {
+            $availableByClient[$client->id] = $client->products()
+                ->wherePivot('is_available', true)
+                ->get();
+        }
+
+        for ($i = 0; $i < $remissionCount; $i++) {
             $client = $clients->random();
             $seller = $sellers->random();
-            $when = Carbon::now()->subDays(rand(0, 25))->subHours(rand(0, 23));
+            // Reparte las remisiones a lo largo de los últimos 90 días, con
+            // un leve sesgo hacia fechas recientes para que se vea natural.
+            $when = Carbon::now()
+                ->subDays((int) round((rand(0, $daysBack) ** 1.2) / ($daysBack ** 0.2)))
+                ->subHours(rand(0, 23))
+                ->subMinutes(rand(0, 59));
 
             $remission = Remission::create([
                 'client_id' => $client->id,
@@ -49,7 +73,12 @@ class DemoDataSeeder extends Seeder
                 'total_amount' => 0,
             ]);
 
-            $products = $client->products()->wherePivot('is_available', true)->inRandomOrder()->take(rand(2, 5))->get();
+            $available = $availableByClient[$client->id];
+            if ($available->isEmpty()) {
+                continue;
+            }
+
+            $products = $available->random(min($available->count(), rand(2, 5)));
             $total = 0;
 
             foreach ($products as $p) {
