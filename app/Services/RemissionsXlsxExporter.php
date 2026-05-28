@@ -11,6 +11,7 @@ use OpenSpout\Common\Entity\Style\Border;
 use OpenSpout\Common\Entity\Style\BorderPart;
 use OpenSpout\Common\Entity\Style\Color;
 use OpenSpout\Common\Entity\Style\Style;
+use OpenSpout\Writer\XLSX\Options;
 use OpenSpout\Writer\XLSX\Writer;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -21,8 +22,19 @@ class RemissionsXlsxExporter
      */
     public function streamDownload(Builder $query, string $filename = 'remisiones.xlsx'): StreamedResponse
     {
-        $response = new StreamedResponse(function () use ($query): void {
-            $writer = new Writer;
+        // OpenSpout escribe temporales para armar el XLSX. En IIS,
+        // sys_get_temp_dir() no es escribible para el usuario del pool, lo
+        // que rompe la descarga. Usamos storage/app/temp (con permisos).
+        $tempFolder = storage_path('app/temp');
+        if (! is_dir($tempFolder)) {
+            mkdir($tempFolder, 0775, true);
+        }
+
+        $options = new Options;
+        $options->setTempFolder($tempFolder);
+
+        $response = new StreamedResponse(function () use ($query, $options): void {
+            $writer = new Writer($options);
             $writer->openToFile('php://output');
 
             $writer->addRow($this->headerRow());
