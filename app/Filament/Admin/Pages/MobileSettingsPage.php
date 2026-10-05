@@ -131,6 +131,11 @@ class MobileSettingsPage extends Page implements HasForms
                 $value = (int) $value;
             }
 
+            // Los campos de texto vacíos llegan como null; las propiedades string no lo admiten.
+            if ($type instanceof \ReflectionNamedType && $type->getName() === 'string' && ! $type->allowsNull()) {
+                $value = (string) $value;
+            }
+
             $settings->{$key} = $value;
         }
 
