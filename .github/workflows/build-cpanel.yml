@@ -1,0 +1,80 @@
+name: Build rama cpanel
+
+# Compila dependencias (vendor/) y assets (public/build/) y publica el
+# resultado en la rama `cpanel`, lista para clonar desde cPanel sin terminal.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-cpanel
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: bcmath, gd, intl, zip, pdo_mysql, mbstring, exif, fileinfo
+          tools: composer:v2
+          coverage: none
+
+      - name: Composer install (producción)
+        run: composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction --no-progress
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Build de assets
+        run: |
+          npm ci
+          npm run build
+
+      - name: Publicar en rama cpanel
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          DEPLOY_DIR="$RUNNER_TEMP/deploy"
+          REMOTE="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+
+          if git ls-remote --exit-code --heads "$REMOTE" cpanel > /dev/null; then
+            git clone --branch cpanel --single-branch --depth 1 "$REMOTE" "$DEPLOY_DIR"
+          else
+            mkdir -p "$DEPLOY_DIR"
+            git -C "$DEPLOY_DIR" init -b cpanel
+            git -C "$DEPLOY_DIR" remote add origin "$REMOTE"
+          fi
+
+          rsync -a --delete \
+            --exclude='.git' \
+            --exclude='node_modules' \
+            --exclude='.github' \
+            --exclude='bootstrap/cache/*.php' \
+            ./ "$DEPLOY_DIR/"
+
+          # En la rama de despliegue sí se versionan vendor/ y public/build/.
+          sed -i '/^\/vendor$/d;/^\/public\/build$/d' "$DEPLOY_DIR/.gitignore"
+
+          cd "$DEPLOY_DIR"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Sin cambios que publicar."
+            exit 0
+          fi
+          git commit -q -m "build: ${GITHUB_SHA::7} desde main"
+          git push origin cpanel
