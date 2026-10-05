@@ -130,6 +130,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && is_string($selected) && isset($acti
         $output = 'No existe vendor/autoload.php. Clona la rama "cpanel" del repositorio.';
     } else {
         try {
+            // Algunos paquetes (p. ej. blade-icons) solo registran sus comandos en consola.
+            $_ENV['APP_RUNNING_IN_CONSOLE'] = $_SERVER['APP_RUNNING_IN_CONSOLE'] = 'true';
+            putenv('APP_RUNNING_IN_CONSOLE=true');
+
             require $basePath.'/vendor/autoload.php';
             $app = require $basePath.'/bootstrap/app.php';
             $kernel = $app->make(Kernel::class);
