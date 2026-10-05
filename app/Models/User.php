@@ -1,0 +1,110 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use Database\Factories\UserFactory;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Models\Contracts\HasName;
+use Filament\Panel;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Permission\Traits\HasRoles;
+
+#[Fillable(['name', 'email', 'password'])]
+#[Hidden(['password', 'remember_token'])]
+class User extends Authenticatable implements FilamentUser, HasName
+{
+    /** @use HasFactory<UserFactory> */
+    use HasApiTokens;
+
+    use HasFactory;
+    use HasRoles;
+    use LogsActivity;
+    use Notifiable;
+
+    public function canAccessPanel(Panel $panel): bool
+    {
+        if ($panel->getId() === 'admin') {
+            return $this->hasAnyRole(['super_admin', 'admin']) || $this->hasAnyPermission(['page_Dashboard']);
+        }
+
+        if ($panel->getId() === 'vendedor') {
+            return $this->hasAnyRole(['super_admin', 'admin', 'seller']);
+        }
+
+        return false;
+    }
+
+    /**
+     * Indica si el usuario es admin o super_admin (acceso total al admin
+     * panel y a las funciones admin de la app móvil).
+     */
+    public function isAdmin(): bool
+    {
+        return $this->hasAnyRole(['super_admin', 'admin']);
+    }
+
+    /**
+     * Etiqueta del rol primario en español, para mostrar en UI y API.
+     */
+    public function getRoleLabel(): string
+    {
+        return match (true) {
+            $this->hasRole('super_admin') => 'Super Administrador',
+            $this->hasRole('admin') => 'Administrador',
+            $this->hasRole('seller') => 'Vendedor',
+            default => 'Sin rol',
+        };
+    }
+
+    public function getFilamentName(): string
+    {
+        return $this->name;
+    }
+
+    public function employeeProfile(): HasOne
+    {
+        return $this->hasOne(EmployeeProfile::class);
+    }
+
+    public function remissions(): HasMany
+    {
+        return $this->hasMany(Remission::class);
+    }
+
+    public function canImpersonate(): bool
+    {
+        return $this->hasRole('super_admin');
+    }
+
+    public function canBeImpersonated(): bool
+    {
+        return ! $this->hasRole('super_admin');
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['name', 'email'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+        ];
+    }
+}

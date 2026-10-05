@@ -1,0 +1,10 @@
+{
+    "version": "15ef6f218745",
+    "generated_at": "2026-05-27T14:44:33+00:00",
+    "routes_count": 31,
+    "enums": {
+        "payment_types": 5,
+        "delivery_routes": 16,
+        "remission_statuses": 4
+    }
+}

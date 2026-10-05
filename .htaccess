@@ -1,0 +1,13 @@
+# Solo se usa si el dominio apunta a la raíz del proyecto (no a public/).
+# Redirige todo a public/ y oculta el resto del código (.env, vendor, storage...).
+<IfModule mod_rewrite.c>
+    Options -MultiViews -Indexes
+    RewriteEngine On
+
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
