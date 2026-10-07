@@ -39,7 +39,7 @@ class RemisionCreada extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            view: 'emails.remission-created',
+            markdown: 'emails.remission-created',
             with: [
                 'remission' => $this->remission,
                 'isCopy' => $this->isCopy,

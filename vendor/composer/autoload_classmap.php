@@ -7,6 +7,7 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'App\\Actions\\AttachDefaultProductsAction' => $baseDir . '/app/Actions/AttachDefaultProductsAction.php',
+    'App\\Actions\\SendRemissionEmailAction' => $baseDir . '/app/Actions/SendRemissionEmailAction.php',
     'App\\Console\\Commands\\GenerateContract' => $baseDir . '/app/Console/Commands/GenerateContract.php',
     'App\\Console\\Commands\\GenerateKrissProposal' => $baseDir . '/app/Console/Commands/GenerateKrissProposal.php',
     'App\\Console\\Commands\\GenerateMinimanual' => $baseDir . '/app/Console/Commands/GenerateMinimanual.php',

@@ -875,6 +875,7 @@ class ComposerStaticInit5a186bdf8bba3c4a127c284b91ea59fc
 
     public static $classMap = array (
         'App\\Actions\\AttachDefaultProductsAction' => __DIR__ . '/../..' . '/app/Actions/AttachDefaultProductsAction.php',
+        'App\\Actions\\SendRemissionEmailAction' => __DIR__ . '/../..' . '/app/Actions/SendRemissionEmailAction.php',
         'App\\Console\\Commands\\GenerateContract' => __DIR__ . '/../..' . '/app/Console/Commands/GenerateContract.php',
         'App\\Console\\Commands\\GenerateKrissProposal' => __DIR__ . '/../..' . '/app/Console/Commands/GenerateKrissProposal.php',
         'App\\Console\\Commands\\GenerateMinimanual' => __DIR__ . '/../..' . '/app/Console/Commands/GenerateMinimanual.php',

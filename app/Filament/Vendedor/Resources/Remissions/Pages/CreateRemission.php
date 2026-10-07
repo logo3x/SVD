@@ -4,16 +4,14 @@ declare(strict_types=1);
 
 namespace App\Filament\Vendedor\Resources\Remissions\Pages;
 
+use App\Actions\SendRemissionEmailAction;
 use App\Enums\RemissionStatus;
 use App\Filament\Concerns\HandlesSignatureDataUrl;
 use App\Filament\Vendedor\Resources\Remissions\RemissionResource;
-use App\Mail\RemisionCreada;
-use App\Services\RemissionEmailRouter;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Mail;
 
 class CreateRemission extends CreateRecord
 {
@@ -60,14 +58,19 @@ class CreateRemission extends CreateRecord
             return;
         }
 
-        $recipients = app(RemissionEmailRouter::class)->recipientsFor($this->record);
-        Mail::to($recipients)->queue(new RemisionCreada($this->record->fresh(['client', 'user', 'products'])));
+        $sentTo = app(SendRemissionEmailAction::class)->execute($this->record->fresh(['client', 'user', 'products']));
 
-        Notification::make()
-            ->title('Comprobante enviado')
-            ->body('Email encolado a '.count($recipients).' destinatarios.')
-            ->success()
-            ->send();
+        $sentTo === null
+            ? Notification::make()
+                ->title('Remisión guardada, pero el correo no se pudo enviar')
+                ->body('Avise al administrador para reenviar el comprobante.')
+                ->warning()
+                ->send()
+            : Notification::make()
+                ->title('Comprobante enviado')
+                ->body('Email enviado a '.$sentTo.' destinatarios.')
+                ->success()
+                ->send();
     }
 
     protected function getRedirectUrl(): string

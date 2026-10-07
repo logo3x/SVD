@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Actions\SendRemissionEmailAction;
 use App\Enums\RemissionStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\SignatureRequest;
 use App\Http\Requests\Api\V1\StoreRemissionRequest;
 use App\Http\Resources\Api\V1\RemissionResource;
-use App\Mail\RemisionCreada;
 use App\Models\Remission;
-use App\Services\RemissionEmailRouter;
 use App\Services\RemissionInvoicePdf;
 use App\Services\RemissionsXlsxExporter;
 use Illuminate\Database\Eloquent\Builder;
@@ -17,7 +16,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class RemissionController extends Controller
@@ -75,8 +73,7 @@ class RemissionController extends Controller
         $remission->load(['client', 'user', 'products']);
 
         if ($remission->status === RemissionStatus::Confirmed) {
-            $recipients = app(RemissionEmailRouter::class)->recipientsFor($remission);
-            Mail::to($recipients)->queue(new RemisionCreada($remission));
+            app(SendRemissionEmailAction::class)->execute($remission);
         }
 
         return RemissionResource::make($remission);
