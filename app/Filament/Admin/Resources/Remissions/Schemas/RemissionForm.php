@@ -116,7 +116,10 @@ class RemissionForm
                     ->components([
                         Repeater::make('items')
                             ->label('')
-                            ->relationship('products')
+                            // HasMany al pivote: con BelongsToMany Filament crearía productos nuevos.
+                            ->relationship('items')
+                            ->mutateRelationshipDataBeforeCreateUsing(fn (array $data): array => self::withServerSubtotal($data))
+                            ->mutateRelationshipDataBeforeSaveUsing(fn (array $data): array => self::withServerSubtotal($data))
                             ->columns(12)
                             ->reorderable(false)
                             ->live()
@@ -294,5 +297,21 @@ class RemissionForm
                             ]),
                     ]),
             ]);
+    }
+
+    /**
+     * Recalcula el subtotal de una línea en el servidor (igual que la API),
+     * sin confiar en el valor enviado por el navegador.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private static function withServerSubtotal(array $data): array
+    {
+        $data['quantity'] = (int) ($data['quantity'] ?? 0);
+        $data['unit_price_snapshot'] = (int) ($data['unit_price_snapshot'] ?? 0);
+        $data['subtotal'] = $data['quantity'] * $data['unit_price_snapshot'];
+
+        return $data;
     }
 }

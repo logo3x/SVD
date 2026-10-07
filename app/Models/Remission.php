@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -52,8 +53,25 @@ class Remission extends Model implements HasMedia
     public function products(): BelongsToMany
     {
         return $this->belongsToMany(Product::class, 'remission_product')
+            ->using(RemissionProduct::class)
             ->withPivot(['quantity', 'unit_price_snapshot', 'subtotal'])
             ->withTimestamps();
+    }
+
+    /**
+     * Líneas de la remisión como registros del pivote (usado por el Repeater de Filament).
+     */
+    public function items(): HasMany
+    {
+        return $this->hasMany(RemissionProduct::class);
+    }
+
+    /**
+     * Recalcula total_amount a partir de las líneas guardadas.
+     */
+    public function recalculateTotal(): void
+    {
+        $this->update(['total_amount' => (int) $this->items()->sum('subtotal')]);
     }
 
     public function registerMediaCollections(): void

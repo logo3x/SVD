@@ -21,8 +21,6 @@ class EditRemission extends EditRecord
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
-        $data['total_amount'] = collect($data['items'] ?? [])->sum('subtotal');
-
         $this->signatureDataUrl = $data['signature_data_url'] ?? null;
         unset($data['signature_data_url']);
 
@@ -31,6 +29,9 @@ class EditRemission extends EditRecord
 
     protected function afterSave(): void
     {
+        // Las líneas las guarda el Repeater (relación items); el total se calcula después.
+        $this->record->recalculateTotal();
+
         $this->persistSignatureDataUrl($this->record, $this->signatureDataUrl);
     }
 

@@ -22,8 +22,6 @@ class CreateRemission extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        $data['total_amount'] = collect($data['items'] ?? [])->sum('subtotal');
-
         // Guarda el data URI y NO lo persiste como columna del modelo.
         $this->signatureDataUrl = $data['signature_data_url'] ?? null;
         unset($data['signature_data_url']);
@@ -33,6 +31,9 @@ class CreateRemission extends CreateRecord
 
     protected function afterCreate(): void
     {
+        // Las líneas las guarda el Repeater (relación items); el total se calcula después.
+        $this->record->recalculateTotal();
+
         // Si firmaron en pantalla, guarda el PNG como media file.
         $this->persistSignatureDataUrl($this->record, $this->signatureDataUrl);
 
