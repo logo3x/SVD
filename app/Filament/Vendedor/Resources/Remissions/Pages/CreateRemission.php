@@ -42,7 +42,6 @@ class CreateRemission extends CreateRecord
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         $data['user_id'] = Auth::id();
-        $data['total_amount'] = collect($data['items'] ?? [])->sum('subtotal');
 
         $this->signatureDataUrl = $data['signature_data_url'] ?? null;
         unset($data['signature_data_url']);
@@ -52,6 +51,9 @@ class CreateRemission extends CreateRecord
 
     protected function afterCreate(): void
     {
+        // Las líneas las guarda el Repeater (relación items); el total se calcula después.
+        $this->record->recalculateTotal();
+
         $this->persistSignatureDataUrl($this->record, $this->signatureDataUrl);
 
         if ($this->record->status !== RemissionStatus::Confirmed) {

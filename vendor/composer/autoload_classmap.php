@@ -106,6 +106,7 @@ return array(
     'App\\Models\\MobileDevice' => $baseDir . '/app/Models/MobileDevice.php',
     'App\\Models\\Product' => $baseDir . '/app/Models/Product.php',
     'App\\Models\\Remission' => $baseDir . '/app/Models/Remission.php',
+    'App\\Models\\RemissionProduct' => $baseDir . '/app/Models/RemissionProduct.php',
     'App\\Models\\User' => $baseDir . '/app/Models/User.php',
     'App\\Observers\\ClientObserver' => $baseDir . '/app/Observers/ClientObserver.php',
     'App\\Policies\\ClientPolicy' => $baseDir . '/app/Policies/ClientPolicy.php',
